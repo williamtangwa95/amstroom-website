@@ -36,7 +36,15 @@
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                <div style="position: relative;">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" style="padding-right: 45px;" required>
+                    <button type="button" class="toggle-password" data-target="password" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 16px; outline: none; padding: 0; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div style="text-align: right; margin-top: 5px;">
+                    <a href="{{ route('admin.password.request') }}" style="color: #64748b; text-decoration: none; font-size: 12px; font-weight: 500; transition: color 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#64748b'">Forgot password?</a>
+                </div>
             </div>
 
             <div class="form-group checkbox-group">
@@ -46,6 +54,26 @@
 
             <button type="submit" class="btn-submit">Sign In <i class="fas fa-sign-in-alt"></i></button>
         </form>
+
+        <script>
+            document.querySelectorAll('.toggle-password').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+        </script>
         
         <div style="text-align: center; margin-top: 20px;">
             <a href="{{ route('home') }}" style="color: #64748b; text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#64748b'">

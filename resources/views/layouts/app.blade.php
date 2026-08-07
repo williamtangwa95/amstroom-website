@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'AMSTROOM COMPUTERS | Technology Innovations')</title>
+    <title>@yield('title', setting('office_name', 'AMSTROOM COMPUTERS') . ' | ' . setting('slogan', 'Technology Innovations'))</title>
 
+    <link rel="icon" type="image/x-icon" href="{{ asset(setting('logo_path', 'images/logo.png')) }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -16,26 +17,27 @@
 <body>
 
     <div class="top-bar">
-        🚚 Delivery Available | ✅ 30 Days Warranty | 💻 Tested & Ready To Use
+        🚚 Delivery Available | ✅ 30+ Days Warranty | 💻 Tested & Ready To Use
     </div>
 
     <header>
         <nav>
             <div class="logo">
-                <img src="{{ asset('images/logo.png') }}" alt="AMSTROOM COMPUTERS Logo">
+                <img src="{{ asset(setting('logo_path', 'images/logo.png')) }}" alt="Logo">
                 <div class="logo-text">
-                    <h2>AMSTROOM COMPUTERS</h2>
-                    <span>Technology Innovations • Fast &amp; Reliable</span>
+                    <h2>{{ setting('office_name', 'AMSTROOM COMPUTERS') }}</h2>
+                    <span>{{ setting('slogan', 'Technology Innovations • Fast & Reliable') }}</span>
                 </div>
             </div>
 
-            <!-- Global Nav Search Bar -->
-            <!-- <div class="nav-search" style="position: relative; max-width: 300px; width: 100%; margin: 0 20px;">
-                <input type="text" id="navProductSearch" placeholder="Search products..." style="color: #222; border: 1px solid #ddd; background: #f8fafc; padding: 8px 15px 8px 35px; border-radius: 20px; font-size: 14px; width: 100%; outline: none; transition: 0.3s;">
-                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--royal); font-size: 13px;"></i>
-            </div> -->
+            <!-- Hamburger Toggle Button -->
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
 
-            <ul>
+            <ul id="navMenu">
                 <li><a href="{{ route('home') }}#home">Home</a></li>
                 <li><a href="{{ route('home') }}#products">Products</a></li>
                 <li><a href="{{ route('home') }}#services">Services</a></li>
@@ -55,7 +57,7 @@
         © {{ date('Y') }} AMSTROOM COMPUTERS | Technology Innovations | Fast & Reliable
     </footer>
 
-    <a href="https://wa.me/255710635173" class="whatsapp" target="_blank">
+    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}" class="whatsapp" target="_blank">
         <i class="fab fa-whatsapp"></i>
     </a>
 
@@ -137,6 +139,25 @@
                         }, 300);
                     }
                 }
+            });
+        }
+
+        // Mobile Navigation Toggle
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', () => {
+                navToggle.classList.toggle('active');
+                navMenu.classList.toggle('active');
+            });
+
+            // Close navigation when clicking a link
+            navMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navToggle.classList.remove('active');
+                    navMenu.classList.remove('active');
+                });
             });
         }
     </script>

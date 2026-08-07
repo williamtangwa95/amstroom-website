@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Support\Str;
+use App\Traits\LogsActivity;
 
 #[Fillable(['name', 'slug'])]
 class Category extends Model
 {
+    use LogsActivity;
+
     /**
      * Get the products associated with the category.
      */

@@ -27,7 +27,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($messages as $msg)
+                        @foreach($messages as $msg)
                             <tr style="border-bottom: 1px solid #eef2f6;">
                                 <td style="font-weight: 600; color: var(--dark); padding: 12px;">{{ $msg->name }}</td>
                                 <td style="padding: 12px;">
@@ -44,13 +44,7 @@
                                     <small style="color: #999;">{{ $msg->created_at->diffForHumans() }}</small>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" style="text-align: center; color: #888; padding: 30px;">
-                                    No inquiries found. Contact form submissions will appear here.
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>

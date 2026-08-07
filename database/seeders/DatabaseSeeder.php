@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -24,6 +25,68 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // Seed default system settings
+        \App\Models\Setting::updateOrCreate(['key' => 'office_name'], ['value' => 'AMSTROOM COMPUTERS']);
+        \App\Models\Setting::updateOrCreate(['key' => 'slogan'], ['value' => 'Technology Innovations • Fast & Reliable']);
+        \App\Models\Setting::updateOrCreate(['key' => 'logo_path'], ['value' => 'images/logo.png']);
+        \App\Models\Setting::updateOrCreate(['key' => 'contact_address'], ['value' => "Shop 101, 2H Plaza\nMorogoro, Tanzania"]);
+        \App\Models\Setting::updateOrCreate(['key' => 'contact_phone'], ['value' => '+255 710 635 173']);
+        \App\Models\Setting::updateOrCreate(['key' => 'contact_whatsapp'], ['value' => '+255 710 635 173']);
+        \App\Models\Setting::updateOrCreate(['key' => 'contact_email'], ['value' => 'info@amstroomcomputers.com']);
+        \App\Models\Setting::updateOrCreate(['key' => 'contact_hours'], ['value' => "Monday - Saturday\n8:00 AM – 7:00 PM"]);
+        \App\Models\Setting::updateOrCreate(['key' => 'google_map_iframe'], ['value' => 'https://maps.google.com/maps?q=Shop%20101,%202H%20Plaza,%20Morogoro,%20Tanzania&t=&z=15&ie=UTF8&iwloc=&output=embed']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_instagram'], ['value' => 'https://instagram.com/amstroom_computers']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_instagram_handle'], ['value' => '@amstroom_computers']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_facebook'], ['value' => 'https://facebook.com/AmstroomComputers']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_facebook_handle'], ['value' => 'Amstroom Computers']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_tiktok'], ['value' => 'https://tiktok.com/@amstroom_computers']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_tiktok_handle'], ['value' => 'Amstroom Computers']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_twitter'], ['value' => '']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_twitter_handle'], ['value' => '']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_linkedin'], ['value' => '']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_linkedin_handle'], ['value' => '']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_youtube'], ['value' => '']);
+        \App\Models\Setting::updateOrCreate(['key' => 'social_youtube_handle'], ['value' => '']);
+        \App\Models\Setting::updateOrCreate(['key' => 'slider_interval'], ['value' => '5']);
+
+        // Seed default Hero slide
+        if (\App\Models\Slider::count() === 0) {
+            \App\Models\Slider::create([
+                'title' => 'FAST & RELIABLE TECHNOLOGY SOLUTIONS',
+                'description' => 'Your trusted destination for laptops, desktops, accessories, software installation, repairs and professional IT services.',
+                'primary_btn_text' => 'Browse Products',
+                'primary_btn_url' => '#products',
+                'secondary_btn_text' => 'WhatsApp Us',
+                'secondary_btn_url' => 'https://wa.me/255710635173',
+                'image_path' => null,
+                'status' => true,
+                'sort_order' => 0
+            ]);
+        }
+
+        // Clear settings cache keys
+        $cacheKeys = [
+            'office_name', 'slogan', 'logo_path',
+            'contact_address', 'contact_phone', 'contact_whatsapp', 'contact_email', 'contact_hours',
+            'google_map_iframe',
+            'social_instagram', 'social_instagram_handle',
+            'social_facebook', 'social_facebook_handle',
+            'social_tiktok', 'social_tiktok_handle',
+            'social_twitter', 'social_twitter_handle',
+            'social_linkedin', 'social_linkedin_handle',
+            'social_youtube', 'social_youtube_handle',
+            'slider_interval'
+        ];
+        foreach ($cacheKeys as $key) {
+            \Illuminate\Support\Facades\Cache::forget("settings:{$key}");
+        }
+
+        // Seed product categories
+        $this->call(CategorySeeder::class);
+
+        // Fetch categories to link products
+        $categories = Category::all()->keyBy('slug');
+
         // Featured products
         $products = [
             [
@@ -33,6 +96,7 @@ class DatabaseSeeder extends Seeder
                 'price' => 650000,
                 'is_from_price' => false,
                 'image_url' => 'https://images.unsplash.com/photo-1517336714739-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
+                'category_id' => isset($categories['laptop']) ? $categories['laptop']->id : null,
             ],
             [
                 'name' => 'Lenovo Yoga 11e',
@@ -41,6 +105,7 @@ class DatabaseSeeder extends Seeder
                 'price' => 380000,
                 'is_from_price' => false,
                 'image_url' => 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=800&q=80',
+                'category_id' => isset($categories['laptop']) ? $categories['laptop']->id : null,
             ],
             [
                 'name' => 'Dell Latitude 3190 2-in-1',
@@ -49,6 +114,7 @@ class DatabaseSeeder extends Seeder
                 'price' => 450000,
                 'is_from_price' => false,
                 'image_url' => 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80',
+                'category_id' => isset($categories['laptop']) ? $categories['laptop']->id : null,
             ],
             [
                 'name' => 'Wireless Mouse',
@@ -57,6 +123,7 @@ class DatabaseSeeder extends Seeder
                 'price' => 20000,
                 'is_from_price' => true,
                 'image_url' => 'https://images.unsplash.com/photo-1547082299-de196ea013d6?auto=format&fit=crop&w=800&q=80',
+                'category_id' => null,
             ],
             [
                 'name' => 'HP ProDesk Desktop',
@@ -65,6 +132,7 @@ class DatabaseSeeder extends Seeder
                 'price' => 750000,
                 'is_from_price' => false,
                 'image_url' => 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=800&q=80',
+                'category_id' => isset($categories['desktop']) ? $categories['desktop']->id : null,
             ],
             [
                 'name' => '24" Full HD Monitor',
@@ -73,6 +141,7 @@ class DatabaseSeeder extends Seeder
                 'price' => 320000,
                 'is_from_price' => false,
                 'image_url' => 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=800&q=80',
+                'category_id' => isset($categories['monitor']) ? $categories['monitor']->id : null,
             ],
             [
                 'name' => 'SSD Upgrade',
@@ -81,6 +150,7 @@ class DatabaseSeeder extends Seeder
                 'price' => 85000,
                 'is_from_price' => true,
                 'image_url' => 'https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=800&q=80',
+                'category_id' => isset($categories['storage']) ? $categories['storage']->id : null,
             ],
             [
                 'name' => 'Gaming Keyboard & Mouse Combo',
@@ -89,11 +159,15 @@ class DatabaseSeeder extends Seeder
                 'price' => 75000,
                 'is_from_price' => false,
                 'image_url' => 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
+                'category_id' => isset($categories['gaming']) ? $categories['gaming']->id : null,
             ],
         ];
 
         foreach ($products as $product) {
-            Product::create($product);
+            Product::updateOrCreate(
+                ['name' => $product['name']],
+                $product
+            );
         }
     }
 }

@@ -33,7 +33,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($products as $product)
+                        @foreach($products as $product)
                             <tr style="border-bottom: 1px solid #eef2f6;">
                                 <td>
                                     <img src="{{ $product->image_url }}" alt="" class="product-img-th">
@@ -64,13 +64,7 @@
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" style="text-align: center; color: #888; padding: 30px;">
-                                    No products found in database. Click "Add Product" to add one.
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>

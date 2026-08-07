@@ -14,7 +14,8 @@ class HomeController extends Controller
     public function index()
     {
         $products = Product::all();
-        return view('home', compact('products'));
+        $sliders = \App\Models\Slider::where('status', true)->orderBy('sort_order')->get();
+        return view('home', compact('products', 'sliders'));
     }
 
     /**

@@ -43,12 +43,22 @@
 
                 <div class="form-group">
                     <label for="password">Password *</label>
-                    <input type="password" name="password" id="password" class="form-control" placeholder="Minimum 8 characters" required>
+                    <div style="position: relative;">
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Minimum 8 characters" style="padding-right: 45px;" required>
+                        <button type="button" class="toggle-password" data-target="password" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 16px; outline: none; padding: 0; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="password_confirmation">Confirm Password *</label>
-                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Re-type password" required>
+                    <div style="position: relative;">
+                        <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Re-type password" style="padding-right: 45px;" required>
+                        <button type="button" class="toggle-password" data-target="password_confirmation" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 16px; outline: none; padding: 0; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-actions">
@@ -58,4 +68,24 @@
             </form>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            $('.toggle-password').on('click', function() {
+                const targetId = $(this).data('target');
+                const input = $('#' + targetId);
+                const icon = $(this).find('i');
+                
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+        });
+    </script>
 @endsection

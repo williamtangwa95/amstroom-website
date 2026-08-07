@@ -1,0 +1,120 @@
+@extends('layouts.admin')
+
+@section('title', 'Edit Slide')
+
+@section('content')
+    <div class="admin-header" style="justify-content: flex-start; gap: 20px;">
+        <a href="{{ route('admin.sliders.index') }}" class="btn-action btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+        <h1>Edit Hero Slide</h1>
+    </div>
+
+    <div class="admin-form">
+        <div class="form-card">
+            @if($errors->any())
+                <div class="error-box" style="background: rgba(220, 53, 69, 0.1); border-left: 4px solid var(--danger); padding: 15px; border-radius: 6px; margin-bottom: 20px; color: var(--danger);">
+                    <ul style="list-style: none; margin: 0; padding: 0;">
+                        @foreach($errors->all() as $error)
+                            <li><i class="fas fa-exclamation-circle"></i> {{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('admin.sliders.update', $slider->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+
+                <div class="form-group">
+                    <label for="title">Slide Title *</label>
+                    <input type="text" name="title" id="title" class="form-control" value="{{ old('title', $slider->title) }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Slide Description</label>
+                    <textarea name="description" id="description" class="form-control" rows="4" style="resize: vertical;">{{ old('description', $slider->description) }}</textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 20px;">
+                    <div class="form-group">
+                        <label for="primary_btn_text">Primary Button Text</label>
+                        <input type="text" name="primary_btn_text" id="primary_btn_text" class="form-control" value="{{ old('primary_btn_text', $slider->primary_btn_text) }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="primary_btn_url">Primary Button URL</label>
+                        <input type="text" name="primary_btn_url" id="primary_btn_url" class="form-control" value="{{ old('primary_btn_url', $slider->primary_btn_url) }}">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label for="secondary_btn_text">Secondary Button Text</label>
+                        <input type="text" name="secondary_btn_text" id="secondary_btn_text" class="form-control" value="{{ old('secondary_btn_text', $slider->secondary_btn_text) }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="secondary_btn_url">Secondary Button URL</label>
+                        <input type="text" name="secondary_btn_url" id="secondary_btn_url" class="form-control" value="{{ old('secondary_btn_url', $slider->secondary_btn_url) }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="image_file">Change Background Image</label>
+                    <input type="file" name="image_file" id="image_file" class="form-control" accept="image/*" style="padding: 8px 12px;">
+                    <small style="color: #64748b; font-size: 12px; margin-top: 5px; display: block;">
+                        Leave empty to keep the current background image.
+                    </small>
+                    
+                    <!-- Preview -->
+                    <div style="margin-top: 15px;" id="preview-wrapper">
+                        @if($slider->image_path)
+                            <img id="image-preview" src="{{ asset($slider->image_path) }}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; border: 1px dashed #cbd5e1; padding: 5px; background: #fff;">
+                        @else
+                            <img id="image-preview" src="#" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; border: 1px dashed #cbd5e1; padding: 5px; background: #fff; display: none;">
+                            <span id="no-image-text" style="font-size: 13px; color: #64748b;"><i class="fas fa-image"></i> Using Default Theme Background Image</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label for="status">Status *</label>
+                        <select name="status" id="status" class="form-control" required>
+                            <option value="1" {{ old('status', $slider->status ? '1' : '0') == '1' ? 'selected' : '' }}>Enabled / Active</option>
+                            <option value="0" {{ old('status', $slider->status ? '1' : '0') == '0' ? 'selected' : '' }}>Disabled / Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sort_order">Sort Order *</label>
+                        <input type="number" name="sort_order" id="sort_order" class="form-control" value="{{ old('sort_order', $slider->sort_order) }}" required>
+                    </div>
+                </div>
+
+                <div class="form-actions" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    <button type="submit" class="btn-action btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                    <a href="{{ route('admin.sliders.index') }}" class="btn-action btn-back">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection
+
+@section('scripts')
+    <script>
+        document.getElementById('image_file').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            const preview = document.getElementById('image-preview');
+            const noImgText = document.getElementById('no-image-text');
+            
+            reader.onload = function(event) {
+                preview.src = event.target.result;
+                preview.style.display = 'block';
+                if(noImgText) {
+                    noImgText.style.display = 'none';
+                }
+            };
+            
+            if(e.target.files[0]) {
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    </script>
+@endsection

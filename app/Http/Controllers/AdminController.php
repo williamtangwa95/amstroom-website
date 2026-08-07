@@ -34,6 +34,13 @@ class AdminController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            \App\Models\ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'login',
+                'details' => ['message' => 'Logged into the system.'],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
             $request->session()->regenerate();
             return redirect()->intended(route('admin.dashboard'));
         }
@@ -87,6 +94,15 @@ class AdminController extends Controller
      */
     public function logout(Request $request)
     {
+        if (Auth::check()) {
+            \App\Models\ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'logout',
+                'details' => ['message' => 'Logged out of the system.'],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
+        }
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -441,5 +457,490 @@ class AdminController extends Controller
     {
         $category->delete();
         return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully!');
+    }
+
+    /**
+     * Display website visitor logs and analytics.
+     */
+    public function indexVisitorLogs()
+    {
+        $totalViews = \App\Models\VisitorLog::count();
+        $uniqueVisitors = \App\Models\VisitorLog::distinct('ip_address')->count('ip_address');
+        
+        $topLocations = \App\Models\VisitorLog::select('country', 'city', \DB::raw('count(*) as count'))
+            ->groupBy('country', 'city')
+            ->orderByDesc('count')
+            ->take(5)
+            ->get();
+            
+        $deviceStats = \App\Models\VisitorLog::select('device_type', \DB::raw('count(*) as count'))
+            ->groupBy('device_type')
+            ->orderByDesc('count')
+            ->get();
+
+        $browserStats = \App\Models\VisitorLog::select('browser', \DB::raw('count(*) as count'))
+            ->groupBy('browser')
+            ->orderByDesc('count')
+            ->take(5)
+            ->get();
+
+        $logs = \App\Models\VisitorLog::with('user')->latest()->take(1000)->get();
+
+        return view('admin.logs.visitors', compact(
+            'totalViews',
+            'uniqueVisitors',
+            'topLocations',
+            'deviceStats',
+            'browserStats',
+            'logs'
+        ));
+    }
+
+    /**
+     * Display administrative activity logs.
+     */
+    public function indexActivityLogs()
+    {
+        $logs = \App\Models\ActivityLog::with('user')->latest()->take(1000)->get();
+        return view('admin.logs.activity', compact('logs'));
+    }
+
+    /**
+     * Display company branding configurations.
+     */
+    public function editSettings()
+    {
+        $officeName = setting('office_name', 'AMSTROOM COMPUTERS');
+        $slogan = setting('slogan', 'Technology Innovations • Fast & Reliable');
+        $logoPath = setting('logo_path', 'images/logo.png');
+        $contactAddress = setting('contact_address', "Shop 101, 2H Plaza\nMorogoro, Tanzania");
+        $contactPhone = setting('contact_phone', '+255 710 635 173');
+        $contactWhatsapp = setting('contact_whatsapp', '+255 710 635 173');
+        $contactEmail = setting('contact_email', 'info@amstroomcomputers.com');
+        $contactHours = setting('contact_hours', "Monday - Saturday\n8:00 AM – 7:00 PM");
+        $googleMapIframe = setting('google_map_iframe', 'https://maps.google.com/maps?q=Shop%20101,%202H%20Plaza,%20Morogoro,%20Tanzania&t=&z=15&ie=UTF8&iwloc=&output=embed');
+        $socialInstagram = setting('social_instagram', 'https://instagram.com/amstroom_computers');
+        $socialInstagramHandle = setting('social_instagram_handle', '@amstroom_computers');
+        $socialFacebook = setting('social_facebook', 'https://facebook.com/AmstroomComputers');
+        $socialFacebookHandle = setting('social_facebook_handle', 'Amstroom Computers');
+        $socialTiktok = setting('social_tiktok', 'https://tiktok.com/@amstroom_computers');
+        $socialTiktokHandle = setting('social_tiktok_handle', 'Amstroom Computers');
+        $socialTwitter = setting('social_twitter', '');
+        $socialTwitterHandle = setting('social_twitter_handle', '');
+        $socialLinkedin = setting('social_linkedin', '');
+        $socialLinkedinHandle = setting('social_linkedin_handle', '');
+        $socialYoutube = setting('social_youtube', '');
+        $socialYoutubeHandle = setting('social_youtube_handle', '');
+        $sliderInterval = setting('slider_interval', '5');
+
+        return view('admin.settings.edit', compact(
+            'officeName', 'slogan', 'logoPath',
+            'contactAddress', 'contactPhone', 'contactWhatsapp', 'contactEmail', 'contactHours',
+            'googleMapIframe',
+            'socialInstagram', 'socialInstagramHandle',
+            'socialFacebook', 'socialFacebookHandle',
+            'socialTiktok', 'socialTiktokHandle',
+            'socialTwitter', 'socialTwitterHandle',
+            'socialLinkedin', 'socialLinkedinHandle',
+            'socialYoutube', 'socialYoutubeHandle',
+            'sliderInterval'
+        ));
+    }
+
+    /**
+     * Update company configuration settings.
+     */
+    public function updateSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'office_name' => 'required|string|max:255',
+            'slogan' => 'required|string|max:255',
+            'logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp,ico|max:2048',
+            'contact_address' => 'required|string|max:1000',
+            'contact_phone' => 'required|string|max:100',
+            'contact_whatsapp' => 'required|string|max:100',
+            'contact_email' => 'required|email|max:255',
+            'contact_hours' => 'required|string|max:1000',
+            'google_map_iframe' => 'nullable|string|max:2000',
+            'social_instagram' => 'nullable|url|max:255',
+            'social_instagram_handle' => 'nullable|string|max:100',
+            'social_facebook' => 'nullable|url|max:255',
+            'social_facebook_handle' => 'nullable|string|max:100',
+            'social_tiktok' => 'nullable|url|max:255',
+            'social_tiktok_handle' => 'nullable|string|max:100',
+            'social_twitter' => 'nullable|url|max:255',
+            'social_twitter_handle' => 'nullable|string|max:100',
+            'social_linkedin' => 'nullable|url|max:255',
+            'social_linkedin_handle' => 'nullable|string|max:100',
+            'social_youtube' => 'nullable|url|max:255',
+            'social_youtube_handle' => 'nullable|string|max:100',
+            'slider_interval' => 'required|integer|min:1|max:60',
+        ]);
+
+        $changes = [];
+
+        // Save all text settings and track changes
+        $textSettings = [
+            'office_name', 'slogan', 'contact_address', 'contact_phone', 'contact_whatsapp',
+            'contact_email', 'contact_hours', 'google_map_iframe',
+            'social_instagram', 'social_instagram_handle',
+            'social_facebook', 'social_facebook_handle',
+            'social_tiktok', 'social_tiktok_handle',
+            'social_twitter', 'social_twitter_handle',
+            'social_linkedin', 'social_linkedin_handle',
+            'social_youtube', 'social_youtube_handle',
+            'slider_interval'
+        ];
+
+        foreach ($textSettings as $key) {
+            $newValue = $request->input($key) ?? ''; // Default empty string for nullable fields
+            $oldValue = setting($key, '');
+            
+            if ($oldValue !== $newValue) {
+                \App\Models\Setting::updateOrCreate(['key' => $key], ['value' => $newValue]);
+                \Illuminate\Support\Facades\Cache::forget("settings:{$key}");
+                $changes[$key] = ['before' => $oldValue, 'after' => $newValue];
+            }
+        }
+
+        // Track logo file upload
+        if ($request->hasFile('logo_file')) {
+            $file = $request->file('logo_file');
+            $filename = 'logo_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            
+            // Ensure settings uploads directory exists
+            $uploadPath = public_path('uploads/settings');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            
+            $file->move($uploadPath, $filename);
+            $newLogoPath = 'uploads/settings/' . $filename;
+            
+            $oldLogoPath = setting('logo_path', 'images/logo.png');
+            \App\Models\Setting::updateOrCreate(['key' => 'logo_path'], ['value' => $newLogoPath]);
+            \Illuminate\Support\Facades\Cache::forget('settings:logo_path');
+            
+            $changes['logo_path'] = ['before' => $oldLogoPath, 'after' => $newLogoPath];
+        }
+
+        if (!empty($changes)) {
+            // Log setting update action
+            \App\Models\ActivityLog::create([
+                'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                'action' => 'updated',
+                'model_type' => \App\Models\Setting::class,
+                'model_id' => null,
+                'details' => [
+                    'message' => 'Updated system settings configurations.',
+                    'before' => collect($changes)->map(fn($c) => $c['before'])->toArray(),
+                    'after' => collect($changes)->map(fn($c) => $c['after'])->toArray(),
+                ],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
+        }
+
+        return redirect()->route('admin.settings.edit')->with('success', 'System settings updated successfully!');
+    }
+
+    /**
+     * Display a listing of the sliders.
+     */
+    public function indexSliders()
+    {
+        $sliders = \App\Models\Slider::orderBy('sort_order')->get();
+        return view('admin.sliders.index', compact('sliders'));
+    }
+
+    /**
+     * Show the form for creating a new slider.
+     */
+    public function createSlider()
+    {
+        return view('admin.sliders.create');
+    }
+
+    /**
+     * Store a newly created slider in storage.
+     */
+    public function storeSlider(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'primary_btn_text' => 'nullable|string|max:50',
+            'primary_btn_url' => 'nullable|string|max:255',
+            'secondary_btn_text' => 'nullable|string|max:50',
+            'secondary_btn_url' => 'nullable|string|max:255',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'status' => 'required|boolean',
+            'sort_order' => 'required|integer',
+        ]);
+
+        if ($request->hasFile('image_file')) {
+            $file = $request->file('image_file');
+            $filename = 'slider_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $uploadPath = public_path('uploads/sliders');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            $file->move($uploadPath, $filename);
+            $validated['image_path'] = 'uploads/sliders/' . $filename;
+        }
+
+        unset($validated['image_file']);
+        $slider = \App\Models\Slider::create($validated);
+
+        // Log action
+        \App\Models\ActivityLog::create([
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
+            'action' => 'created',
+            'model_type' => \App\Models\Slider::class,
+            'model_id' => $slider->id,
+            'details' => ['message' => "Created a new hero slide: {$slider->title}."],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->header('User-Agent'),
+        ]);
+
+        return redirect()->route('admin.sliders.index')->with('success', 'Slide created successfully!');
+    }
+
+    /**
+     * Show the form for editing the specified slider.
+     */
+    public function editSlider(\App\Models\Slider $slider)
+    {
+        return view('admin.sliders.edit', compact('slider'));
+    }
+
+    /**
+     * Update the specified slider in storage.
+     */
+    public function updateSlider(Request $request, \App\Models\Slider $slider)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'primary_btn_text' => 'nullable|string|max:50',
+            'primary_btn_url' => 'nullable|string|max:255',
+            'secondary_btn_text' => 'nullable|string|max:50',
+            'secondary_btn_url' => 'nullable|string|max:255',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'status' => 'required|boolean',
+            'sort_order' => 'required|integer',
+        ]);
+
+        if ($request->hasFile('image_file')) {
+            // Delete old file if it exists
+            if ($slider->image_path && file_exists(public_path($slider->image_path))) {
+                @unlink(public_path($slider->image_path));
+            }
+
+            $file = $request->file('image_file');
+            $filename = 'slider_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $uploadPath = public_path('uploads/sliders');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            $file->move($uploadPath, $filename);
+            $validated['image_path'] = 'uploads/sliders/' . $filename;
+        }
+
+        unset($validated['image_file']);
+        $slider->update($validated);
+
+        // Log action
+        \App\Models\ActivityLog::create([
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
+            'action' => 'updated',
+            'model_type' => \App\Models\Slider::class,
+            'model_id' => $slider->id,
+            'details' => ['message' => "Updated hero slide: {$slider->title}."],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->header('User-Agent'),
+        ]);
+
+        return redirect()->route('admin.sliders.index')->with('success', 'Slide updated successfully!');
+    }
+
+    /**
+     * Remove the specified slider from storage.
+     */
+    public function deleteSlider(Request $request, \App\Models\Slider $slider)
+    {
+        // Delete image file if it exists
+        if ($slider->image_path && file_exists(public_path($slider->image_path))) {
+            @unlink(public_path($slider->image_path));
+        }
+
+        $title = $slider->title;
+        $slider->delete();
+
+        // Log action
+        \App\Models\ActivityLog::create([
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
+            'action' => 'deleted',
+            'model_type' => \App\Models\Slider::class,
+            'model_id' => null,
+            'details' => ['message' => "Deleted hero slide: {$title}."],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->header('User-Agent'),
+        ]);
+
+        return redirect()->route('admin.sliders.index')->with('success', 'Slide deleted successfully!');
+    }
+
+    /**
+     * Show Forgot Password Request form.
+     */
+    public function showForgotPassword()
+    {
+        return view('admin.passwords.email');
+    }
+
+    /**
+     * Generate 6-digit OTP code and send code email.
+     */
+    public function sendResetCode(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ], [
+            'email.exists' => 'No account associated with this email address was found.'
+        ]);
+
+        $email = $request->email;
+        $code = strval(rand(100000, 999999));
+
+        // Save code in password_reset_tokens table
+        \Illuminate\Support\Facades\DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $email],
+            [
+                'token' => $code,
+                'created_at' => now()
+            ]
+        );
+
+        // Send validation code via Mail
+        try {
+            \Illuminate\Support\Facades\Mail::send('emails.reset_code', ['code' => $code], function($message) use ($email) {
+                $message->to($email)
+                        ->subject('AMSTROOM COMPUTERS - Password Reset Verification Code');
+            });
+        } catch (\Exception $e) {
+            // Log error but proceed to help testing or show in local log
+            \Illuminate\Support\Facades\Log::error('Mail sending failed: ' . $e->getMessage());
+        }
+
+        // Set email in session and route to verification page
+        session(['reset_email' => $email]);
+
+        // Log the activity
+        try {
+            $user = \App\Models\User::where('email', $email)->first();
+            \App\Models\ActivityLog::create([
+                'user_id' => $user->id ?? null,
+                'action' => 'updated',
+                'model_type' => \App\Models\User::class,
+                'model_id' => $user->id ?? null,
+                'details' => ['message' => 'Requested password reset verification code.'],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
+        } catch (\Exception $ex) {}
+
+        return redirect()->route('admin.password.verify.show')->with('success', 'A 6-digit verification code has been sent to your email address.');
+    }
+
+    /**
+     * Show verification code entry form.
+     */
+    public function showVerifyCode()
+    {
+        if (!session('reset_email')) {
+            return redirect()->route('admin.password.request')->with('error', 'Please enter your email first.');
+        }
+
+        return view('admin.passwords.verify');
+    }
+
+    /**
+     * Validate the submitted verification code.
+     */
+    public function verifyCode(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string|size:6'
+        ]);
+
+        $email = session('reset_email');
+        if (!$email) {
+            return redirect()->route('admin.password.request')->with('error', 'Session expired. Please request a new code.');
+        }
+
+        $record = \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+            ->where('email', $email)
+            ->first();
+
+        // Check matching and expiration (15 minutes)
+        if (!$record || $record->token !== $request->code || now()->diffInMinutes($record->created_at) > 15) {
+            return back()->withErrors(['code' => 'The verification code is invalid or has expired.'])->withInput();
+        }
+
+        // Save validation state
+        session(['reset_code_validated' => true]);
+
+        return redirect()->route('admin.password.reset.show');
+    }
+
+    /**
+     * Show New Password resetting form.
+     */
+    public function showResetPassword()
+    {
+        if (!session('reset_email') || !session('reset_code_validated')) {
+            return redirect()->route('admin.password.request')->with('error', 'Session verification expired. Please start over.');
+        }
+
+        return view('admin.passwords.reset');
+    }
+
+    /**
+     * Save the new validated password.
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed'
+        ]);
+
+        $email = session('reset_email');
+        if (!$email || !session('reset_code_validated')) {
+            return redirect()->route('admin.password.request')->with('error', 'Session verification expired. Please start over.');
+        }
+
+        $user = \App\Models\User::where('email', $email)->firstOrFail();
+        $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+        $user->save();
+
+        // Clear tokens and session
+        \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', $email)->delete();
+        session()->forget(['reset_email', 'reset_code_validated']);
+
+        // Log the activity
+        try {
+            \App\Models\ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'updated',
+                'model_type' => \App\Models\User::class,
+                'model_id' => $user->id,
+                'details' => ['message' => 'Successfully reset account password via email verification code.'],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
+        } catch (\Exception $ex) {}
+
+        return redirect()->route('login')->with('success', 'Your password has been reset successfully! Please sign in with your new credentials.');
     }
 }
