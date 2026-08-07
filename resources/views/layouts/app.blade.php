@@ -4,6 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="@yield('meta_description', 'Your trusted destination for quality laptops, desktop computers, accessories, Windows & software installation, security installations (CCTV, Electric Fence), computer repairs, and IT support in Morogoro, Tanzania.')">
+    <meta name="keywords" content="Amstroom Computers, laptops Morogoro, computer repair Morogoro, laptop store Tanzania, cheap laptops Tanzania, desktop computers Morogoro, software installation Morogoro, electric fence Morogoro, CCTV camera installation Morogoro, IT support Tanzania">
+    <meta name="author" content="{{ setting('office_name', 'AMSTROOM COMPUTERS') }}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="@yield('title', setting('office_name', 'AMSTROOM COMPUTERS') . ' | ' . setting('slogan', 'Technology Innovations'))">
+    <meta property="og:description" content="Your trusted destination for quality laptops, desktop computers, accessories, software installation, repairs, and professional security/IT support services in Tanzania.">
+    <meta property="og:image" content="{{ asset(setting('logo_path', 'images/logo.png')) }}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ url()->current() }}">
+    <meta property="twitter:title" content="@yield('title', setting('office_name', 'AMSTROOM COMPUTERS') . ' | ' . setting('slogan', 'Technology Innovations'))">
+    <meta property="twitter:description" content="Your trusted destination for quality laptops, desktop computers, accessories, software installation, repairs, and professional security/IT support services in Tanzania.">
+    <meta property="twitter:image" content="{{ asset(setting('logo_path', 'images/logo.png')) }}">
+
     <title>@yield('title', setting('office_name', 'AMSTROOM COMPUTERS') . ' | ' . setting('slogan', 'Technology Innovations'))</title>
 
     <link rel="icon" type="image/x-icon" href="{{ asset(setting('logo_path', 'images/logo.png')) }}">
