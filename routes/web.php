@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
+Route::post('/product-requests', [HomeController::class, 'submitProductRequest'])->name('product-request.submit');
 
 // Admin Auth Routes
 Route::get('/admin/login', [AdminController::class, 'showLogin'])->name('login');
@@ -31,6 +32,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     // Inquiries Listing
     Route::get('/inquiries', [AdminController::class, 'indexInquiries'])->name('inquiries.index');
+
+    // Product Requests Listing & Management
+    Route::get('/requests', [AdminController::class, 'indexRequests'])->name('requests.index');
+    Route::post('/requests/{productRequest}/status', [AdminController::class, 'updateRequestStatus'])->name('requests.updateStatus');
+    Route::post('/requests/{productRequest}/delete', [AdminController::class, 'deleteRequest'])->name('requests.delete');
 
     // Categories CRUD
     Route::get('/categories', [AdminController::class, 'indexCategories'])->name('categories.index');
@@ -71,4 +77,28 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/sliders/{slider}/edit', [AdminController::class, 'editSlider'])->name('sliders.edit');
     Route::post('/sliders/{slider}/edit', [AdminController::class, 'updateSlider'])->name('sliders.update');
     Route::post('/sliders/{slider}/delete', [AdminController::class, 'deleteSlider'])->name('sliders.delete');
+
+    // Homepage Content Manager
+    Route::get('/homepage', [AdminController::class, 'indexHomepage'])->name('homepage.index');
+
+    // Services CRUD
+    Route::get('/homepage/services/create', [AdminController::class, 'createService'])->name('services.create');
+    Route::post('/homepage/services/create', [AdminController::class, 'storeService'])->name('services.store');
+    Route::get('/homepage/services/{service}/edit', [AdminController::class, 'editService'])->name('services.edit');
+    Route::post('/homepage/services/{service}/edit', [AdminController::class, 'updateService'])->name('services.update');
+    Route::post('/homepage/services/{service}/delete', [AdminController::class, 'deleteService'])->name('services.delete');
+
+    // Why Chooses CRUD
+    Route::get('/homepage/why-chooses/create', [AdminController::class, 'createWhyChoose'])->name('why-chooses.create');
+    Route::post('/homepage/why-chooses/create', [AdminController::class, 'storeWhyChoose'])->name('why-chooses.store');
+    Route::get('/homepage/why-chooses/{whyChoose}/edit', [AdminController::class, 'editWhyChoose'])->name('why-chooses.edit');
+    Route::post('/homepage/why-chooses/{whyChoose}/edit', [AdminController::class, 'updateWhyChoose'])->name('why-chooses.update');
+    Route::post('/homepage/why-chooses/{whyChoose}/delete', [AdminController::class, 'deleteWhyChoose'])->name('why-chooses.delete');
+
+    // Stats CRUD
+    Route::get('/homepage/stats/create', [AdminController::class, 'createStat'])->name('stats.create');
+    Route::post('/homepage/stats/create', [AdminController::class, 'storeStat'])->name('stats.store');
+    Route::get('/homepage/stats/{stat}/edit', [AdminController::class, 'editStat'])->name('stats.edit');
+    Route::post('/homepage/stats/{stat}/edit', [AdminController::class, 'updateStat'])->name('stats.update');
+    Route::post('/homepage/stats/{stat}/delete', [AdminController::class, 'deleteStat'])->name('stats.delete');
 });

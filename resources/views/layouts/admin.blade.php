@@ -13,6 +13,22 @@
     <!-- DataTables CSS CDN & Responsive Extension -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    <style>
+        /* Modern thin scrollbar for sidebar menu */
+        .sidebar-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        .sidebar-menu::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
     @yield('styles')
 </head>
 <body>
@@ -47,6 +63,12 @@
             <a href="{{ route('admin.products.index') }}" class="mobile-menu-link {{ request()->routeIs('admin.products.index') ? 'active' : '' }}">Product Catalog</a>
             <a href="{{ route('admin.categories.index') }}" class="mobile-menu-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Product Categories</a>
             <a href="{{ route('admin.inquiries.index') }}" class="mobile-menu-link {{ request()->routeIs('admin.inquiries.index') ? 'active' : '' }}">Customer Inquiries</a>
+            <a href="{{ route('admin.requests.index') }}" class="mobile-menu-link {{ request()->routeIs('admin.requests.index') ? 'active' : '' }}" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Product Requests & Orders</span>
+                @if($pendingReqCount = \App\Models\ProductRequest::where('status', 'pending')->count())
+                    <span style="background: var(--gold); color: black; font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 700;">{{ $pendingReqCount }}</span>
+                @endif
+            </a>
             <a href="{{ route('admin.profile.edit') }}" class="mobile-menu-link {{ request()->routeIs('admin.profile.edit') ? 'active' : '' }}">My Profile</a>
             
             @if(auth()->user()->role === 'admin')
@@ -54,6 +76,7 @@
                 <a href="{{ route('admin.logs.visitors') }}" class="mobile-menu-link {{ request()->routeIs('admin.logs.visitors') ? 'active' : '' }}">Visitor Analytics</a>
                 <a href="{{ route('admin.logs.activity') }}" class="mobile-menu-link {{ request()->routeIs('admin.logs.activity') ? 'active' : '' }}">User Activity Logs</a>
                 <a href="{{ route('admin.sliders.index') }}" class="mobile-menu-link {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}">Hero Slider</a>
+                <a href="{{ route('admin.homepage.index') }}" class="mobile-menu-link {{ request()->routeIs('admin.homepage.*') || request()->routeIs('admin.services.*') || request()->routeIs('admin.why-chooses.*') || request()->routeIs('admin.stats.*') ? 'active' : '' }}">Homepage Content</a>
                 <a href="{{ route('admin.settings.edit') }}" class="mobile-menu-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">System Settings</a>
             @endif
             
@@ -89,7 +112,7 @@
             </div>
 
             <!-- Navigation Links -->
-            <nav class="sidebar-menu" style="flex: 1; padding: 25px 15px; display: flex; flex-direction: column; gap: 8px;">
+            <nav class="sidebar-menu" style="flex: 1; padding: 25px 15px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto;">
                 <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255,255,255,0.75); text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14.5px;">
                     <i class="fas fa-tachometer-alt" style="width: 20px; font-size: 16px;"></i> Dashboard
                 </a>
@@ -101,6 +124,14 @@
                 </a>
                 <a href="{{ route('admin.inquiries.index') }}" class="sidebar-link {{ request()->routeIs('admin.inquiries.index') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255,255,255,0.75); text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14.5px;">
                     <i class="fas fa-envelope-open-text" style="width: 20px; font-size: 16px;"></i> Customer Inquiries
+                </a>
+                <a href="{{ route('admin.requests.index') }}" class="sidebar-link {{ request()->routeIs('admin.requests.index') ? 'active' : '' }}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; color: rgba(255,255,255,0.75); text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14.5px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-shopping-basket" style="width: 20px; font-size: 16px;"></i> Requests & Orders
+                    </div>
+                    @if($pendingReqCount = \App\Models\ProductRequest::where('status', 'pending')->count())
+                        <span style="background: var(--gold); color: black; font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 700;">{{ $pendingReqCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('admin.profile.edit') }}" class="sidebar-link {{ request()->routeIs('admin.profile.edit') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255,255,255,0.75); text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14.5px;">
                     <i class="fas fa-user-circle" style="width: 20px; font-size: 16px;"></i> My Profile
@@ -117,6 +148,9 @@
                     </a>
                     <a href="{{ route('admin.sliders.index') }}" class="sidebar-link {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255,255,255,0.75); text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14.5px;">
                         <i class="fas fa-images" style="width: 20px; font-size: 16px;"></i> Hero Slider
+                    </a>
+                    <a href="{{ route('admin.homepage.index') }}" class="sidebar-link {{ request()->routeIs('admin.homepage.*') || request()->routeIs('admin.services.*') || request()->routeIs('admin.why-chooses.*') || request()->routeIs('admin.stats.*') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255,255,255,0.75); text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14.5px;">
+                        <i class="fas fa-home" style="width: 20px; font-size: 16px;"></i> Homepage Content
                     </a>
                     <a href="{{ route('admin.settings.edit') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255,255,255,0.75); text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14.5px;">
                         <i class="fas fa-sliders-h" style="width: 20px; font-size: 16px;"></i> System Settings

@@ -67,6 +67,12 @@
 <!-- STATS SECTION -->
 <section class="stats">
     <div class="stats-grid">
+        @forelse($stats as $stat)
+        <div class="stat">
+            <h2>{{ $stat->value }}</h2>
+            <p>{{ $stat->label }}</p>
+        </div>
+        @empty
         <div class="stat">
             <h2>500+</h2>
             <p>Happy Customers</p>
@@ -83,6 +89,7 @@
             <h2>100%</h2>
             <p>Quality Products</p>
         </div>
+        @endforelse
     </div>
 </section>
 
@@ -102,16 +109,26 @@
     <div class="product-grid">
         @forelse($products as $product)
         <div class="card {{ $loop->index >= 6 ? 'hidden-product' : '' }}">
-            @if($product->image_url)
-            <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
-            @else
-            <img src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80" alt="{{ $product->name }}">
-            @endif
+            <div style="position: relative; overflow: hidden; width: 100%; height: 220px;">
+                @if($product->image_url)
+                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
+                @else
+                <img src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
+                @endif
+                @if(!$product->in_stock)
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(9, 32, 58, 0.45); color: white; font-weight: 800; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; z-index: 2;">Out of Stock</div>
+                @endif
+            </div>
 
             <div class="card-content">
-                @if($product->badge)
-                <span class="badge">{{ strtoupper($product->badge) }}</span>
-                @endif
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    @if($product->badge)
+                    <span class="badge">{{ strtoupper($product->badge) }}</span>
+                    @endif
+                    @if(!$product->in_stock)
+                    <span class="badge" style="background: #dc3545;">OUT OF STOCK</span>
+                    @endif
+                </div>
 
                 <h3>{{ $product->name }}</h3>
                 <p>{!! nl2br(e($product->description)) !!}</p>
@@ -123,9 +140,26 @@
                     TZS {{ number_format($product->price, 0) }}
                 </div>
 
-                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}?text=Hello%20{{ rawurlencode(setting('office_name', 'AMSTROOM COMPUTERS')) }},%20I%20would%20like%20to%20order%20the%20product:%20{{ urlencode($product->name) }}" class="order-btn" target="_blank">
-                    Order Now
-                </a>
+                <div style="display: flex; gap: 10px; margin-top: auto; width: 100%;">
+                    @if($product->in_stock)
+                        <button class="order-btn add-to-cart-btn" style="flex: 1; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="addToCart(this)" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}" data-image="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    @else
+                        <button class="order-btn" style="flex: 1; border: none; background: #64748b; color: white; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.8;" disabled>
+                            <i class="fas fa-ban"></i> Out of Stock
+                        </button>
+                    @endif
+
+                    @php
+                        $waMsg = $product->in_stock 
+                            ? "Hello " . setting('office_name', 'AMSTROOM COMPUTERS') . ", I would like to order the product: " . $product->name
+                            : "Hello " . setting('office_name', 'AMSTROOM COMPUTERS') . ", I would like to inquire about the out of stock product: " . $product->name . ". When will it be back in stock?";
+                    @endphp
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}?text={{ rawurlencode($waMsg) }}" class="order-btn" style="background: transparent; border: 2px solid var(--gold); color: var(--gold); display: flex; align-items: center; justify-content: center; width: 48px; padding: 0; flex-shrink: 0;" target="_blank" title="{{ $product->in_stock ? 'Order directly via WhatsApp' : 'Inquire via WhatsApp' }}">
+                        <i class="fab fa-whatsapp" style="font-size: 20px; margin: 0; color: inherit;"></i>
+                    </a>
+                </div>
             </div>
         </div>
         @empty
@@ -145,6 +179,75 @@
     @endif
 </section>
 
+<!-- PRODUCT REQUEST SECTION -->
+<section class="product-request-section" id="request-product">
+    <div class="product-request-container">
+        <div class="product-request-info">
+            <h2>Can't find the product you're looking for?</h2>
+            <p>
+                At {{ setting('office_name', 'AMSTROOM COMPUTERS') }}, we source high-quality laptops, custom desktops, and accessories tailored exactly to your requirements. 
+                Fill out this request form with your desired specifications (processor, RAM, storage, brand, budget, etc.), and our sales team will find it for you!
+            </p>
+            <div class="product-request-benefits">
+                <div class="benefit-item">
+                    <div class="benefit-icon"><i class="fas fa-check"></i></div>
+                    <div class="benefit-text">
+                        <h4>Custom Configurations</h4>
+                        <p>Get computers customized with exactly the RAM, SSD, or graphics cards you need.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon"><i class="fas fa-search-dollar"></i></div>
+                    <div class="benefit-text">
+                        <h4>Best Market Pricing</h4>
+                        <p>We source directly from leading importers to offer you the most competitive rates.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon"><i class="fas fa-shipping-fast"></i></div>
+                    <div class="benefit-text">
+                        <h4>Secure Logistics &amp; Delivery</h4>
+                        <p>We handle safe packaging and quick shipping directly to Morogoro or anywhere in Tanzania.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-request-form-wrapper">
+            <h3>Submit a Product Request</h3>
+            
+            <form id="productRequestForm" action="{{ route('product-request.submit') }}" method="POST">
+                @csrf
+                <input type="hidden" name="request_type" value="custom">
+                
+                <div class="form-group">
+                    <label for="req_name">Full Name *</label>
+                    <input type="text" name="name" id="req_name" class="form-control" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="req_phone">Phone / WhatsApp *</label>
+                    <input type="text" name="phone" id="req_phone" class="form-control" placeholder="e.g. +255 710 635 173" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="req_email">Email Address (Optional)</label>
+                    <input type="email" name="email" id="req_email" class="form-control" placeholder="Enter your email address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="req_details">Specifications / What product are you looking for? *</label>
+                    <textarea name="details" id="req_details" rows="5" class="form-control" placeholder="Describe the laptop, desktop, accessory or service you need. Include brands, specifications, model numbers, budget, etc." required></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn" style="width: 100%;">
+                    Submit Request <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
 <!-- SERVICES SECTION -->
 <section class="services" id="services">
     <div class="section-title">
@@ -156,60 +259,19 @@
     </div>
 
     <div class="service-grid">
+        @forelse($services as $service)
+        <div class="service-card">
+            <div class="service-icon"><i class="{{ $service->icon }}"></i></div>
+            <h3>{{ $service->title }}</h3>
+            <p>{!! nl2br(e($service->description)) !!}</p>
+        </div>
+        @empty
         <div class="service-card">
             <div class="service-icon"><i class="fas fa-laptop"></i></div>
             <h3>Laptop Sales</h3>
             <p>High-quality new and refurbished laptops from Dell, HP, Lenovo, Acer, ASUS, Apple and more.</p>
         </div>
-
-        <div class="service-card">
-            <div class="service-icon"><i class="fas fa-desktop"></i></div>
-            <h3>Desktop Computers</h3>
-            <p>Office desktops, gaming PCs, all-in-one computers, and custom-built desktop solutions.</p>
-        </div>
-
-        <div class="service-card">
-            <div class="service-icon"><i class="fab fa-windows"></i></div>
-            <h3>Windows & Program (Software) Installations</h3>
-            <p>Windows installation, activation, driver setup, formatting, upgrades, and optimization.
-                Microsoft Office, Adobe products, antivirus, accounting software, AutoCAD and other essential applications</p>
-        </div>
-
-        <div class="service-card">
-            <div class="service-icon"><i class="fas fa-tools"></i></div>
-            <h3>Computer Repair</h3>
-            <p>Hardware diagnostics, motherboard repair, screen replacement, keyboard repair, battery replacement, and maintenance.</p>
-        </div>
-
-        <div class="service-card">
-            <div class="service-icon"><i class="fas fa-print"></i></div>
-            <h3>Printers & Computer Accessories</h3>
-            <p>Printers, cartridges, computer accessories, flash drives, SSDs, HDDs, keyboards, mice and more.</p>
-        </div>
-
-        <div class="service-card">
-            <div class="service-icon"><i class="fas fa-shield-alt"></i></div>
-            <h3>Security & Surverance</h3>
-            <p>Installation of CCTV camera, Electric Fence, Biometrics, Alarm Systems and other security solutions.</p>
-        </div>
-
-        <div class="service-card">
-            <div class="service-icon"><i class="fas fa-database"></i></div>
-            <h3>Data Backup & Recovery</h3>
-            <p>Professional data backup services for individuals, businesses, schools, and organizations.</p>
-        </div>
-        <!-- gaming acessories -->
-        <div class="service-card">
-            <div class="service-icon"><i class="fas fa-gamepad"></i></div>
-            <h3>Gaming Acessories</h3>
-            <p>Professional Gaming Acessories services for gaming.</p>
-        </div>
-
-        <div class="service-card">
-            <div class="service-icon"><i class="fas fa-headset"></i></div>
-            <h3>IT Support</h3>
-            <p>Professional IT support services for individuals, businesses, schools, and organizations.</p>
-        </div>
+        @endforelse
     </div>
 </section>
 
@@ -221,41 +283,19 @@
     </div>
 
     <div class="why-grid">
+        @forelse($whyChooses as $wc)
+        <div class="why-card">
+            <div class="why-icon"><i class="{{ $wc->icon }}"></i></div>
+            <h3>{{ $wc->title }}</h3>
+            <p>{!! nl2br(e($wc->description)) !!}</p>
+        </div>
+        @empty
         <div class="why-card">
             <div class="why-icon"><i class="fas fa-shield-halved"></i></div>
             <h3>Quality Guaranteed</h3>
             <p>Every product is carefully tested and verified before delivery, ensuring reliability and excellent performance.</p>
         </div>
-
-        <div class="why-card">
-            <div class="why-icon"><i class="fas fa-tags"></i></div>
-            <h3>Affordable Prices</h3>
-            <p>Competitive prices on laptops, desktops, accessories, and IT services without compromising quality.</p>
-        </div>
-
-        <div class="why-card">
-            <div class="why-icon"><i class="fas fa-headset"></i></div>
-            <h3>Professional Support</h3>
-            <p>Friendly and experienced technicians ready to help before and after every purchase.</p>
-        </div>
-
-        <div class="why-card">
-            <div class="why-icon"><i class="fas fa-truck-fast"></i></div>
-            <h3>Fast Delivery</h3>
-            <p>We provide quick and secure delivery services to customers across Tanzania.</p>
-        </div>
-
-        <div class="why-card">
-            <div class="why-icon"><i class="fas fa-award"></i></div>
-            <h3>30+ Days Warranty</h3>
-            <p>Selected products include a warranty for your confidence and peace of mind.</p>
-        </div>
-
-        <div class="why-card">
-            <div class="why-icon"><i class="fas fa-users"></i></div>
-            <h3>Trusted by Customers</h3>
-            <p>Hundreds of satisfied customers continue to choose {{ setting('office_name', 'AMSTROOM COMPUTERS') }} for quality and dependable service.</p>
-        </div>
+        @endforelse
     </div>
 </section>
 
@@ -417,11 +457,361 @@
             @endif
         </div>
     </div>
+<!-- FLOATING SHOPPING CART BUTTON -->
+<button class="cart-floating-btn" id="cartFloatingBtn" onclick="toggleCartDrawer()" style="display: none;">
+    <i class="fas fa-shopping-cart"></i>
+    <span class="cart-badge" id="cartBadge">0</span>
+</button>
+
+<!-- CART DRAWER OVERLAY -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCartDrawer()"></div>
+
+<!-- CART DRAWER PANEL -->
+<div class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer-header">
+        <h3><i class="fas fa-shopping-cart"></i> Shopping Cart</h3>
+        <button class="cart-close-btn" onclick="toggleCartDrawer()">&times;</button>
+    </div>
+    
+    <div class="cart-drawer-body">
+        <!-- Cart Items list -->
+        <div class="cart-items-container" id="cartItemsContainer">
+            <!-- Dynamically populated via JS -->
+        </div>
+        
+        <!-- Totals & Checkout -->
+        <div class="cart-totals" id="cartTotalsSection" style="display: none;">
+            <div class="cart-total-row">
+                <span>Subtotal:</span>
+                <span id="cartSubtotal">TZS 0</span>
+            </div>
+            
+            <div class="cart-checkout-form">
+                <h4>Checkout Details</h4>
+                <form id="cartCheckoutForm" action="{{ route('product-request.submit') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="request_type" value="cart">
+                    <input type="hidden" name="total_price" id="cartFormTotalPrice" value="0">
+                    <input type="hidden" name="details" id="cartFormDetails" value="">
+                    
+                    <div class="cart-form-group">
+                        <label for="cart_name">Full Name *</label>
+                        <input type="text" name="name" id="cart_name" class="cart-form-control" placeholder="Enter your full name" required>
+                    </div>
+                    
+                    <div class="cart-form-group">
+                        <label for="cart_phone">Phone / WhatsApp Number *</label>
+                        <input type="text" name="phone" id="cart_phone" class="cart-form-control" placeholder="e.g. +255 710 635 173" required>
+                    </div>
+                    
+                    <div class="cart-form-group">
+                        <label for="cart_email">Email Address (Optional)</label>
+                        <input type="email" name="email" id="cart_email" class="cart-form-control" placeholder="Enter your email address">
+                    </div>
+                    
+                    <div class="cart-checkout-actions">
+                        <button type="submit" class="btn-checkout-web" id="btnCheckoutWeb">
+                            Place Order (Submit Online) <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <button type="button" class="btn-checkout-wa" onclick="checkoutViaWhatsApp()">
+                            Order via WhatsApp <i class="fab fa-whatsapp"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </section>
 @endsection
 
 @section('scripts')
 <script>
+    // SHOPPING CART LOGIC
+    let cart = JSON.parse(localStorage.getItem('amstroom_cart')) || [];
+
+    function saveCart() {
+        localStorage.setItem('amstroom_cart', JSON.stringify(cart));
+        updateCartUI();
+    }
+
+    function toggleCartDrawer() {
+        document.getElementById('cartDrawer').classList.toggle('active');
+        document.getElementById('cartOverlay').classList.toggle('active');
+    }
+
+    function addToCart(btn) {
+        const id = parseInt(btn.getAttribute('data-id'));
+        const name = btn.getAttribute('data-name');
+        const price = parseFloat(btn.getAttribute('data-price'));
+        const imageUrl = btn.getAttribute('data-image');
+
+        const existingItem = cart.find(item => item.id === id);
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({
+                id: id,
+                name: name,
+                price: price,
+                image: imageUrl,
+                quantity: 1
+            });
+        }
+        
+        saveCart();
+        showToast(`Added "${name}" to cart!`);
+    }
+
+    function removeFromCart(id) {
+        cart = cart.filter(item => item.id !== id);
+        saveCart();
+    }
+
+    function updateQuantity(id, change) {
+        const item = cart.find(item => item.id === id);
+        if (item) {
+            item.quantity += change;
+            if (item.quantity <= 0) {
+                removeFromCart(id);
+            } else {
+                saveCart();
+            }
+        }
+    }
+
+    function showToast(message) {
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-success show';
+        toast.innerHTML = `
+            <i class="fas fa-check-circle" style="color: var(--gold); font-size: 20px;"></i>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 5000);
+    }
+
+    function updateCartUI() {
+        const cartFloatingBtn = document.getElementById('cartFloatingBtn');
+        const cartBadge = document.getElementById('cartBadge');
+        const cartItemsContainer = document.getElementById('cartItemsContainer');
+        const cartTotalsSection = document.getElementById('cartTotalsSection');
+        const cartSubtotal = document.getElementById('cartSubtotal');
+        
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        
+        if (totalItems > 0) {
+            cartFloatingBtn.style.display = 'flex';
+            cartBadge.textContent = totalItems;
+        } else {
+            cartFloatingBtn.style.display = 'none';
+        }
+        
+        if (cart.length === 0) {
+            cartItemsContainer.innerHTML = `
+                <div class="cart-empty-state">
+                    <i class="fas fa-shopping-basket"></i>
+                    <p>Your cart is empty.</p>
+                </div>
+            `;
+            cartTotalsSection.style.display = 'none';
+        } else {
+            let html = '';
+            let subtotal = 0;
+            
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">TZS ${itemTotal.toLocaleString()}</div>
+                            <div style="font-size: 11.5px; color: #666; margin-top: 2px;">TZS ${item.price.toLocaleString()} each</div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <div class="qty-control">
+                                <button type="button" class="qty-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                                <span class="qty-val">${item.quantity}</span>
+                                <button type="button" class="qty-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                            </div>
+                            <button type="button" class="cart-item-remove" onclick="removeFromCart(${item.id})">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItemsContainer.innerHTML = html;
+            cartSubtotal.textContent = `TZS ${subtotal.toLocaleString()}`;
+            cartTotalsSection.style.display = 'block';
+            
+            document.getElementById('cartFormTotalPrice').value = subtotal;
+            document.getElementById('cartFormDetails').value = JSON.stringify(cart);
+        }
+    }
+
+    function checkoutViaWhatsApp() {
+        const name = document.getElementById('cart_name').value.trim();
+        const phone = document.getElementById('cart_phone').value.trim();
+        const email = document.getElementById('cart_email').value.trim();
+        
+        if (!name || !phone) {
+            alert('Please fill in your Name and Phone/WhatsApp number to complete the order.');
+            document.getElementById('cart_name').focus();
+            return;
+        }
+        
+        let text = `Hello {{ setting('office_name', 'AMSTROOM COMPUTERS') }},\n\n`;
+        text += `I would like to place an order for the following items:\n`;
+        
+        let subtotal = 0;
+        cart.forEach((item, index) => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+            text += `${index + 1}. *${item.name}* (Qty: ${item.quantity}) - TZS ${itemTotal.toLocaleString()}\n`;
+        });
+        
+        text += `\n*Total Amount:* TZS ${subtotal.toLocaleString()}\n\n`;
+        text += `*Customer Details:*\n`;
+        text += `- Name: ${name}\n`;
+        text += `- Phone: ${phone}\n`;
+        if (email) {
+            text += `- Email: ${email}\n`;
+        }
+        
+        const whatsappNumber = "{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}";
+        const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
+        
+        const form = document.getElementById('cartCheckoutForm');
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            cart = [];
+            saveCart();
+            toggleCartDrawer();
+            form.reset();
+            window.open(url, '_blank');
+        })
+        .catch(err => {
+            console.error('Error saving order record:', err);
+            window.open(url, '_blank');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCartUI();
+        
+        const cartForm = document.getElementById('cartCheckoutForm');
+        if (cartForm) {
+            cartForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const submitBtn = document.getElementById('btnCheckoutWeb');
+                const originalText = submitBtn.innerHTML;
+                
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing Order...';
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    
+                    if (data.success) {
+                        cart = [];
+                        saveCart();
+                        toggleCartDrawer();
+                        cartForm.reset();
+                        showToast('Order placed successfully! We will contact you soon.');
+                    } else {
+                        alert(data.message || 'Something went wrong. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            });
+        }
+
+        const requestForm = document.getElementById('productRequestForm');
+        if (requestForm) {
+            requestForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('.submit-btn');
+                const originalText = submitBtn.innerHTML;
+                
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    
+                    if (data.success) {
+                        requestForm.reset();
+                        showToast('Request submitted successfully! We will contact you soon.');
+                    } else {
+                        alert(data.message || 'Something went wrong. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            });
+        }
+    });
+
     document.getElementById('productSearch').addEventListener('input', function(e) {
         const query = e.target.value.toLowerCase().trim();
         const cards = document.querySelectorAll('.product-grid .card');
@@ -734,6 +1124,543 @@
     .dot.active {
         background: var(--gold);
         transform: scale(1.2);
+    }
+
+    /* FLOATING SHOPPING CART BUTTON */
+    .cart-floating-btn {
+        position: fixed;
+        right: 20px;
+        bottom: 100px;
+        width: 65px;
+        height: 65px;
+        background: var(--gold);
+        color: var(--royal);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        text-decoration: none;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        z-index: 999;
+        transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+        border: none;
+        outline: none;
+    }
+
+    .cart-floating-btn:hover {
+        transform: scale(1.1);
+        background: var(--royal);
+        color: white;
+    }
+
+    .cart-floating-btn .cart-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #dc3545;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--gold);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        animation: cartBounce 0.3s ease;
+    }
+
+    @keyframes cartBounce {
+        0% { transform: scale(0.5); }
+        50% { transform: scale(1.3); }
+        100% { transform: scale(1); }
+    }
+
+    /* CART DRAWER OVERLAY */
+    .cart-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(9, 32, 58, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 9998;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+    }
+
+    .cart-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* CART DRAWER PANEL */
+    .cart-drawer {
+        position: fixed;
+        top: 0;
+        right: -460px;
+        width: 450px;
+        max-width: 100%;
+        height: 100vh;
+        background: #ffffff;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cart-drawer.active {
+        right: 0;
+    }
+
+    .cart-drawer-header {
+        padding: 20px 25px;
+        background: var(--royal);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .cart-drawer-header h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .cart-close-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        transition: 0.2s;
+        outline: none;
+    }
+
+    .cart-close-btn:hover {
+        color: var(--gold);
+        transform: rotate(90deg);
+    }
+
+    .cart-drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* CART ITEMS LIST */
+    .cart-items-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .cart-empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #888;
+    }
+
+    .cart-empty-state i {
+        font-size: 55px;
+        color: #ddd;
+        margin-bottom: 15px;
+    }
+
+    .cart-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .cart-item-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .cart-item-details {
+        flex: 1;
+    }
+
+    .cart-item-name {
+        font-size: 14.5px;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 5px;
+        line-height: 1.4;
+    }
+
+    .cart-item-price {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--royal);
+    }
+
+    .cart-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .qty-control {
+        display: flex;
+        align-items: center;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #f8fafc;
+    }
+
+    .qty-btn {
+        border: none;
+        background: none;
+        width: 26px;
+        height: 26px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 14px;
+        color: #475569;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+    }
+
+    .qty-btn:hover {
+        background: #e2e8f0;
+        color: var(--royal);
+    }
+
+    .qty-val {
+        width: 30px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .cart-item-remove {
+        background: none;
+        border: none;
+        color: #cbd5e1;
+        cursor: pointer;
+        font-size: 16px;
+        transition: 0.2s;
+        padding: 5px;
+    }
+
+    .cart-item-remove:hover {
+        color: #dc3545;
+    }
+
+    /* TOTAL & CHECKOUT FORM */
+    .cart-totals {
+        border-top: 2px dashed #e2e8f0;
+        padding-top: 15px;
+        margin-top: 10px;
+    }
+
+    .cart-total-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 20px;
+    }
+
+    .cart-checkout-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        background: #f8fafc;
+        border: 1px solid #eef2f6;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .cart-checkout-form h4 {
+        margin: 0 0 5px 0;
+        color: var(--dark);
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .cart-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .cart-form-group label {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #475569;
+        text-align: left;
+    }
+
+    .cart-form-control {
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+        outline: none;
+        transition: 0.2s;
+        background: white;
+        color: #333;
+    }
+
+    .cart-form-control:focus {
+        border-color: var(--royal);
+        box-shadow: 0 0 0 3px rgba(11, 79, 181, 0.15);
+    }
+
+    .cart-checkout-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-checkout-web {
+        width: 100%;
+        padding: 14px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 700;
+        font-size: 15px;
+        background: var(--royal);
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-checkout-web:hover {
+        background: #093c8a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(11, 79, 181, 0.2);
+    }
+
+    .btn-checkout-wa {
+        width: 100%;
+        padding: 14px;
+        border-radius: 8px;
+        border: 2px solid #25D366;
+        font-weight: 700;
+        font-size: 15px;
+        background: transparent;
+        color: #25D366;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-checkout-wa:hover {
+        background: #25D366;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+    }
+
+    /* PRODUCT REQUEST SECTION */
+    .product-request-section {
+        padding: 95px 20px;
+        background: #ffffff;
+        border-top: 1px solid #f1f5f9;
+        text-align: left;
+    }
+
+    .product-request-container {
+        max-width: 1200px;
+        margin: auto;
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 50px;
+        align-items: start;
+    }
+
+    .product-request-info h2 {
+        font-size: 36px;
+        color: var(--royal);
+        font-weight: 800;
+        line-height: 1.3;
+        margin-bottom: 20px;
+    }
+
+    .product-request-info p {
+        color: #555;
+        line-height: 1.8;
+        margin-bottom: 30px;
+        font-size: 15.5px;
+    }
+
+    .product-request-benefits {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .benefit-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .benefit-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(11, 79, 181, 0.08);
+        color: var(--royal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .benefit-text h4 {
+        margin: 0 0 5px 0;
+        color: var(--dark);
+        font-size: 17px;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .benefit-text p {
+        margin: 0;
+        color: #555;
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: left;
+    }
+
+    .product-request-form-wrapper {
+        background: #f8fafc;
+        border: 1px solid #eef2f6;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+    }
+
+    .product-request-form-wrapper h3 {
+        font-size: 24px;
+        color: var(--dark);
+        margin-bottom: 30px;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .product-request-form-wrapper .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .product-request-form-wrapper .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .product-request-form-wrapper .form-control {
+        width: 100% !important;
+        padding: 14px 18px !important;
+        border-radius: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        color: #333030 !important;
+        font-size: 15px !important;
+        outline: none !important;
+        transition: 0.3s !important;
+        box-sizing: border-box !important;
+        display: block !important;
+    }
+
+    .product-request-form-wrapper .form-control::placeholder {
+        color: #94a3b8 !important;
+    }
+
+    .product-request-form-wrapper .form-control:focus {
+        border-color: var(--royal) !important;
+        box-shadow: 0 0 0 3px rgba(11, 79, 181, 0.15) !important;
+        background: #ffffff !important;
+        color: #222222 !important;
+    }
+
+    .product-request-form-wrapper .submit-btn {
+        background: var(--royal);
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .product-request-form-wrapper .submit-btn:hover {
+        background: #093c8a;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(11, 79, 181, 0.2);
+    }
+
+    /* RESPONSIVE LAYOUT ADJUSTMENTS */
+    @media (max-width: 992px) {
+        .product-request-container {
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        
+        .product-request-info h2 {
+            font-size: 30px;
+        }
+    }
+
+    /* STATS CARD HOVER FADE IN / FADE OUT EFFECT */
+    .stat {
+        opacity: 0.85;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .stat:hover {
+        opacity: 1;
+        transform: translateY(-6px);
+        box-shadow: 0 15px 30px rgba(11, 79, 181, 0.12);
     }
 </style>
 @endsection

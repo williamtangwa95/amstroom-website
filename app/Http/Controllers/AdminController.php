@@ -6,6 +6,10 @@ use App\Models\Product;
 use App\Models\ContactMessage;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\ProductRequest;
+use App\Models\Service;
+use App\Models\WhyChoose;
+use App\Models\Stat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -58,16 +62,22 @@ class AdminController extends Controller
         $productsCount = Product::count();
         $messagesCount = ContactMessage::count();
         $usersCount = User::count();
+        $requestsCount = ProductRequest::count();
+        $pendingRequestsCount = ProductRequest::where('status', 'pending')->count();
         
         $recentMessages = ContactMessage::latest()->take(5)->get();
         $recentProducts = Product::latest()->take(5)->get();
+        $recentRequests = ProductRequest::latest()->take(5)->get();
 
         return view('admin.dashboard', compact(
             'productsCount', 
             'messagesCount', 
             'usersCount', 
+            'requestsCount',
+            'pendingRequestsCount',
             'recentMessages', 
-            'recentProducts'
+            'recentProducts',
+            'recentRequests'
         ));
     }
 
@@ -87,6 +97,50 @@ class AdminController extends Controller
     {
         $messages = ContactMessage::latest()->get();
         return view('admin.inquiries.index', compact('messages'));
+    }
+
+    /**
+     * Display customer product requests and orders.
+     */
+    public function indexRequests(Request $request)
+    {
+        $query = ProductRequest::latest();
+
+        // Optional filtering by type or status
+        if ($request->filled('type')) {
+            $query->where('request_type', $request->input('type'));
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $requests = $query->get();
+
+        return view('admin.requests.index', compact('requests'));
+    }
+
+    /**
+     * Update the status of a product request.
+     */
+    public function updateRequestStatus(Request $request, ProductRequest $productRequest)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:pending,in_progress,completed,cancelled',
+        ]);
+
+        $productRequest->update($validated);
+
+        return back()->with('success', 'Request status updated successfully!');
+    }
+
+    /**
+     * Delete a product request.
+     */
+    public function deleteRequest(ProductRequest $productRequest)
+    {
+        $productRequest->delete();
+
+        return back()->with('success', 'Product request deleted successfully!');
     }
 
     /**
@@ -123,17 +177,21 @@ class AdminController extends Controller
      */
     public function storeProduct(Request $request)
     {
+        $request->merge([
+            'is_from_price' => $request->has('is_from_price'),
+            'in_stock' => $request->has('in_stock'),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'nullable|exists:categories,id',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'is_from_price' => 'boolean',
+            'in_stock' => 'boolean',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'image_url' => 'nullable|url',
         ]);
-
-        $validated['is_from_price'] = $request->has('is_from_price');
 
         if ($request->filled('category_id')) {
             $category = Category::find($request->input('category_id'));
@@ -182,17 +240,21 @@ class AdminController extends Controller
      */
     public function updateProduct(Request $request, Product $product)
     {
+        $request->merge([
+            'is_from_price' => $request->has('is_from_price'),
+            'in_stock' => $request->has('in_stock'),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'nullable|exists:categories,id',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'is_from_price' => 'boolean',
+            'in_stock' => 'boolean',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'image_url' => 'nullable|url',
         ]);
-
-        $validated['is_from_price'] = $request->has('is_from_price');
 
         if ($request->filled('category_id')) {
             $category = Category::find($request->input('category_id'));
@@ -942,5 +1004,159 @@ class AdminController extends Controller
         } catch (\Exception $ex) {}
 
         return redirect()->route('login')->with('success', 'Your password has been reset successfully! Please sign in with your new credentials.');
+    }
+
+    /**
+     * Display the homepage components manager dashboard.
+     */
+    public function indexHomepage()
+    {
+        $services = Service::orderBy('sort_order')->get();
+        $whyChooses = WhyChoose::orderBy('sort_order')->get();
+        $stats = Stat::orderBy('sort_order')->get();
+        
+        return view('admin.homepage.index', compact('services', 'whyChooses', 'stats'));
+    }
+
+    // ==========================================
+    // SERVICES CRUD
+    // ==========================================
+
+    public function createService()
+    {
+        return view('admin.homepage.services.create');
+    }
+
+    public function storeService(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'icon' => 'required|string|max:255',
+            'description' => 'required|string',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        Service::create($validated);
+
+        return redirect()->route('admin.homepage.index')->with('success', 'Service added successfully!');
+    }
+
+    public function editService(Service $service)
+    {
+        return view('admin.homepage.services.edit', compact('service'));
+    }
+
+    public function updateService(Request $request, Service $service)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'icon' => 'required|string|max:255',
+            'description' => 'required|string',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        $service->update($validated);
+
+        return redirect()->route('admin.homepage.index')->with('success', 'Service updated successfully!');
+    }
+
+    public function deleteService(Service $service)
+    {
+        $service->delete();
+        return redirect()->route('admin.homepage.index')->with('success', 'Service deleted successfully!');
+    }
+
+    // ==========================================
+    // WHY CHOOSES CRUD
+    // ==========================================
+
+    public function createWhyChoose()
+    {
+        return view('admin.homepage.why-chooses.create');
+    }
+
+    public function storeWhyChoose(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'icon' => 'required|string|max:255',
+            'description' => 'required|string',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        WhyChoose::create($validated);
+
+        return redirect()->route('admin.homepage.index')->with('success', 'Feature added successfully!');
+    }
+
+    public function editWhyChoose(WhyChoose $whyChoose)
+    {
+        return view('admin.homepage.why-chooses.edit', compact('whyChoose'));
+    }
+
+    public function updateWhyChoose(Request $request, WhyChoose $whyChoose)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'icon' => 'required|string|max:255',
+            'description' => 'required|string',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        $whyChoose->update($validated);
+
+        return redirect()->route('admin.homepage.index')->with('success', 'Feature updated successfully!');
+    }
+
+    public function deleteWhyChoose(WhyChoose $whyChoose)
+    {
+        $whyChoose->delete();
+        return redirect()->route('admin.homepage.index')->with('success', 'Feature deleted successfully!');
+    }
+
+    // ==========================================
+    // STATS CRUD
+    // ==========================================
+
+    public function createStat()
+    {
+        return view('admin.homepage.stats.create');
+    }
+
+    public function storeStat(Request $request)
+    {
+        $validated = $request->validate([
+            'value' => 'required|string|max:255',
+            'label' => 'required|string|max:255',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        Stat::create($validated);
+
+        return redirect()->route('admin.homepage.index')->with('success', 'Stat added successfully!');
+    }
+
+    public function editStat(Stat $stat)
+    {
+        return view('admin.homepage.stats.edit', compact('stat'));
+    }
+
+    public function updateStat(Request $request, Stat $stat)
+    {
+        $validated = $request->validate([
+            'value' => 'required|string|max:255',
+            'label' => 'required|string|max:255',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        $stat->update($validated);
+
+        return redirect()->route('admin.homepage.index')->with('success', 'Stat updated successfully!');
+    }
+
+    public function deleteStat(Stat $stat)
+    {
+        $stat->delete();
+        return redirect()->route('admin.homepage.index')->with('success', 'Stat deleted successfully!');
     }
 }

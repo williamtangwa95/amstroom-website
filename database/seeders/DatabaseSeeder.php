@@ -169,5 +169,153 @@ class DatabaseSeeder extends Seeder
                 $product
             );
         }
+
+        // Clear old records to prevent duplicates
+        \App\Models\Service::query()->delete();
+        \App\Models\WhyChoose::query()->delete();
+        \App\Models\Stat::query()->delete();
+
+        // Seed default Services
+        $services = [
+            [
+                'title' => 'Laptop Sales',
+                'icon' => 'fas fa-laptop',
+                'description' => 'High-quality new and refurbished laptops from Dell, HP, Lenovo, Acer, ASUS, Apple and more.',
+                'sort_order' => 0
+            ],
+            [
+                'title' => 'Desktop Computers',
+                'icon' => 'fas fa-desktop',
+                'description' => 'Office desktops, gaming PCs, all-in-one computers, and custom-built desktop solutions.',
+                'sort_order' => 1
+            ],
+            [
+                'title' => 'Windows & Program (Software) Installations',
+                'icon' => 'fab fa-windows',
+                'description' => "Windows installation, activation, driver setup, formatting, upgrades, and optimization.\nMicrosoft Office, Adobe products, antivirus, accounting software, AutoCAD and other essential applications",
+                'sort_order' => 2
+            ],
+            [
+                'title' => 'Computer Repair',
+                'icon' => 'fas fa-tools',
+                'description' => 'Hardware diagnostics, motherboard repair, screen replacement, keyboard repair, battery replacement, and maintenance.',
+                'sort_order' => 3
+            ],
+            [
+                'title' => 'Printers & Computer Accessories',
+                'icon' => 'fas fa-print',
+                'description' => 'Printers, cartridges, computer accessories, flash drives, SSDs, HDDs, keyboards, mice and more.',
+                'sort_order' => 4
+            ],
+            [
+                'title' => 'Security & Surverance',
+                'icon' => 'fas fa-shield-alt',
+                'description' => 'Installation of CCTV camera, Electric Fence, Biometrics, Alarm Systems and other security solutions.',
+                'sort_order' => 5
+            ],
+            [
+                'title' => 'Data Backup & Recovery',
+                'icon' => 'fas fa-database',
+                'description' => 'Professional data backup services for individuals, businesses, schools, and organizations.',
+                'sort_order' => 6
+            ],
+            [
+                'title' => 'Gaming Acessories',
+                'icon' => 'fas fa-gamepad',
+                'description' => 'Professional Gaming Acessories services for gaming.',
+                'sort_order' => 7
+            ],
+            [
+                'title' => 'IT Support',
+                'icon' => 'fas fa-headset',
+                'description' => 'Professional IT support services for individuals, businesses, schools, and organizations.',
+                'sort_order' => 8
+            ]
+        ];
+
+        foreach ($services as $srv) {
+            \App\Models\Service::updateOrCreate(
+                ['title' => $srv['title']],
+                $srv
+            );
+        }
+
+        // Seed default Why Chooses
+        $whyChooses = [
+            [
+                'title' => 'Quality Guaranteed',
+                'icon' => 'fas fa-shield-halved',
+                'description' => 'Every product is carefully tested and verified before delivery, ensuring reliability and excellent performance.',
+                'sort_order' => 0
+            ],
+            [
+                'title' => 'Affordable Prices',
+                'icon' => 'fas fa-tags',
+                'description' => 'Competitive prices on laptops, desktops, accessories, and IT services without compromising quality.',
+                'sort_order' => 1
+            ],
+            [
+                'title' => 'Professional Support',
+                'icon' => 'fas fa-headset',
+                'description' => 'Friendly and experienced technicians ready to help before and after every purchase.',
+                'sort_order' => 2
+            ],
+            [
+                'title' => 'Fast Delivery',
+                'icon' => 'fas fa-truck-fast',
+                'description' => 'We provide quick and secure delivery services to customers across Tanzania.',
+                'sort_order' => 3
+            ],
+            [
+                'title' => '30+ Days Warranty',
+                'icon' => 'fas fa-award',
+                'description' => 'Selected products include a warranty for your confidence and peace of mind.',
+                'sort_order' => 4
+            ],
+            [
+                'title' => 'Trusted by Customers',
+                'icon' => 'fas fa-users',
+                'description' => 'Hundreds of satisfied customers continue to choose AMSTROOM COMPUTERS for quality and dependable service.',
+                'sort_order' => 5
+            ]
+        ];
+
+        foreach ($whyChooses as $wc) {
+            \App\Models\WhyChoose::updateOrCreate(
+                ['title' => $wc['title']],
+                $wc
+            );
+        }
+
+        // Seed default Stats
+        $stats = [
+            [
+                'value' => '500+',
+                'label' => 'Happy Customers',
+                'sort_order' => 0
+            ],
+            [
+                'value' => '30+ Days',
+                'label' => 'Warranty',
+                'sort_order' => 1
+            ],
+            [
+                'value' => '24/7',
+                'label' => 'Customer Support',
+                'sort_order' => 2
+            ],
+            [
+                'value' => '100%',
+                'label' => 'Quality Products',
+                'sort_order' => 3
+            ]
+        ];
+
+        foreach ($stats as $st) {
+            \App\Models\Stat::updateOrCreate(
+                ['label' => $st['label']],
+                $st
+            );
+        }
     }
 }

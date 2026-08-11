@@ -30,6 +30,15 @@
                 <div class="metric-icon"><i class="fas fa-envelope-open-text"></i></div>
             </div>
         </a>
+        <a href="{{ route('admin.requests.index') }}" style="text-decoration: none; color: inherit;">
+            <div class="metric-card" style="background: white; border-top: 5px solid var(--primary); transition: 0.3s; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); color: #333; height: 100%;">
+                <div class="metric-info">
+                    <h3 style="color: #64748b; font-size: 14px; margin-bottom: 5px;">Requests & Orders</h3>
+                    <p style="font-size: 28px; font-weight: 700; margin: 0; color: var(--dark);">{{ $requestsCount }} <span style="font-size: 13px; font-weight: normal; color: #777;">({{ $pendingRequestsCount }} pending)</span></p>
+                </div>
+                <div class="metric-icon" style="font-size: 32px; color: var(--primary);"><i class="fas fa-shopping-basket"></i></div>
+            </div>
+        </a>
         @if(auth()->user()->role === 'admin')
             <a href="{{ route('admin.users.index') }}" style="text-decoration: none; color: inherit;">
                 <div class="metric-card" style="background: white; border-top: 5px solid #FFC107; transition: 0.3s; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); color: #333;">
@@ -68,6 +77,77 @@
 
     <!-- Recent Items Sections -->
     <div style="display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 40px;">
+        <!-- Recent Product Requests & Orders -->
+        <div class="dashboard-section" style="margin: 0;">
+            <div class="dashboard-section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Recent Product Requests & Orders</h2>
+                <a href="{{ route('admin.requests.index') }}" style="color: var(--primary); text-decoration: none; font-size: 13.5px; font-weight: 600;">View All Requests <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="table-responsive" style="background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); overflow: hidden; padding: 15px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #eef2f6;">
+                            <th style="padding: 12px; font-weight: 600;">Customer</th>
+                            <th style="padding: 12px; font-weight: 600;">Type</th>
+                            <th style="padding: 12px; font-weight: 600;">Summary</th>
+                            <th style="padding: 12px; font-weight: 600;">Status</th>
+                            <th style="padding: 12px; font-weight: 600;">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentRequests as $req)
+                            <tr style="border-bottom: 1px solid #eef2f6;">
+                                <td style="padding: 12px; font-weight: 600; color: var(--dark);">{{ $req->name }}</td>
+                                <td style="padding: 12px;">
+                                    @if($req->request_type === 'cart')
+                                        <span style="background: rgba(40, 167, 69, 0.1); color: #28a745; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">Cart Order</span>
+                                    @else
+                                        <span style="background: rgba(11, 79, 181, 0.1); color: #0B4FB5; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">Custom Request</span>
+                                    @endif
+                                </td>
+                                <td style="padding: 12px; color: #555; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    @if($req->request_type === 'cart')
+                                        @php
+                                            $items = $req->cart_items;
+                                            $summary = '';
+                                            if (is_array($items)) {
+                                                $names = array_map(function($i) { return $i['quantity'] . 'x ' . $i['name']; }, $items);
+                                                $summary = implode(', ', $names);
+                                            }
+                                        @endphp
+                                        {{ Str::limit($summary, 60) }}
+                                    @else
+                                        {{ Str::limit($req->details, 60) }}
+                                    @endif
+                                </td>
+                                <td style="padding: 12px;">
+                                    @php
+                                        $statusColors = [
+                                            'pending' => 'background: #ffc107; color: black;',
+                                            'in_progress' => 'background: #17a2b8; color: white;',
+                                            'completed' => 'background: #28a745; color: white;',
+                                            'cancelled' => 'background: #dc3545; color: white;',
+                                        ];
+                                        $style = $statusColors[$req->status] ?? 'background: #6c757d; color: white;';
+                                    @endphp
+                                    <span style="{{ $style }} padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: capitalize;">{{ str_replace('_', ' ', $req->status) }}</span>
+                                </td>
+                                <td style="padding: 12px; color: #666; font-size: 13px;">
+                                    {{ $req->created_at->diffForHumans() }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #888; padding: 25px;">
+                                    No product requests received yet.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Recent Customer Inquiries -->
         <div class="dashboard-section" style="margin: 0;">
             <div class="dashboard-section-header" style="display: flex; justify-content: space-between; align-items: center;">

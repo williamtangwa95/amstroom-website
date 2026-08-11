@@ -38,8 +38,12 @@
 
 <body>
 
-    <div class="top-bar">
-        🚚 Delivery Available | ✅ 30+ Days Warranty | 💻 Tested & Ready To Use
+    <div class="top-bar" style="font-size: 13px; letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;"><i class="fas fa-truck-fast" style="color: var(--gold);"></i> Safe Delivery Available Across Tanzania</span>
+        <span style="color: rgba(255,255,255,0.3); margin: 0 5px; font-weight: 300;">|</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;"><i class="fas fa-award" style="color: var(--gold);"></i> 30+ Days Warranty Included</span>
+        <span style="color: rgba(255,255,255,0.3); margin: 0 5px; font-weight: 300;">|</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;"><i class="fas fa-circle-check" style="color: var(--gold);"></i> 100% Inspected &amp; Certified Ready</span>
     </div>
 
     <header>
@@ -63,6 +67,7 @@
                 <li><a href="{{ route('home') }}#home">Home</a></li>
                 <li><a href="{{ route('home') }}#products">Products</a></li>
                 <li><a href="{{ route('home') }}#services">Services</a></li>
+                <li><a href="{{ route('home') }}#request-product">Request Product</a></li>
                 <li><a href="{{ route('home') }}#contact">Contact</a></li>
                 <li><a href="{{ route('login') }}"><i class="fa fa-user-lock"></i> Admin</a></li>
             </ul>

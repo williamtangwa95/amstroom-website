@@ -29,6 +29,7 @@
                             <th>Product Name</th>
                             <th>Category / Badge</th>
                             <th>Price</th>
+                            <th>Stock Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -51,6 +52,13 @@
                                         <span style="font-weight: 400; font-size: 12px; color: #777;">From</span>
                                     @endif
                                     TZS {{ number_format($product->price, 0) }}
+                                </td>
+                                <td>
+                                    @if($product->in_stock)
+                                        <span class="badge-table" style="background: rgba(40, 167, 69, 0.1); color: #28a745; padding: 5px 10px; border-radius: 12px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-check-circle"></i> In Stock</span>
+                                    @else
+                                        <span class="badge-table" style="background: rgba(220, 53, 69, 0.1); color: #dc3545; padding: 5px 10px; border-radius: 12px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-times-circle"></i> Out of Stock</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <div style="display: flex; gap: 8px;">

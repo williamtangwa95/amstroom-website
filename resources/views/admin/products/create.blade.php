@@ -49,6 +49,11 @@
                     <label for="is_from_price">This is a starting price (Prefixes display with "From TZS ...")</label>
                 </div>
 
+                <div class="form-group checkbox-group" style="margin-top: 10px;">
+                    <input type="checkbox" name="in_stock" id="in_stock" {{ old('in_stock', true) ? 'checked' : '' }}>
+                    <label for="in_stock" style="font-weight: 600; color: #28a745;"><i class="fas fa-boxes" style="margin-right: 5px;"></i> Product is In Stock</label>
+                </div>
+
                 <div class="form-group">
                     <label for="image_file">Upload Product Image</label>
                     <input type="file" name="image_file" id="image_file" class="form-control" accept="image/*" style="padding: 8px 12px;">
