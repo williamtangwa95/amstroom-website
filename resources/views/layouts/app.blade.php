@@ -69,7 +69,6 @@
                 <li><a href="{{ route('home') }}#services">Services</a></li>
                 <li><a href="{{ route('home') }}#request-product">Request Product</a></li>
                 <li><a href="{{ route('home') }}#contact">Contact</a></li>
-                <li><a href="{{ route('login') }}"><i class="fa fa-user-lock"></i> Admin</a></li>
             </ul>
 
 
@@ -81,7 +80,7 @@
     </main>
 
     <footer>
-        © {{ date('Y') }} AMSTROOM COMPUTERS | Technology Innovations | Fast & Reliable
+        <a href="{{ route('login') }}" style="color: inherit; text-decoration: none; cursor: default;">&copy;</a>&nbsp;{{ date('Y') }} AMSTROOM COMPUTERS | Technology Innovations | Fast & Reliable
     </footer>
 
     <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}" class="whatsapp" target="_blank">

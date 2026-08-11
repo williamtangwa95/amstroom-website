@@ -736,6 +736,7 @@ class AdminController extends Controller
             'secondary_btn_text' => 'nullable|string|max:50',
             'secondary_btn_url' => 'nullable|string|max:255',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'overlay_opacity' => 'required|numeric|min:0|max:1',
             'status' => 'required|boolean',
             'sort_order' => 'required|integer',
         ]);
@@ -789,6 +790,7 @@ class AdminController extends Controller
             'secondary_btn_text' => 'nullable|string|max:50',
             'secondary_btn_url' => 'nullable|string|max:255',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'overlay_opacity' => 'required|numeric|min:0|max:1',
             'status' => 'required|boolean',
             'sort_order' => 'required|integer',
         ]);

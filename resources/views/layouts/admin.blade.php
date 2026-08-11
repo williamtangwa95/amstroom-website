@@ -234,15 +234,7 @@
 
                 // Initialize DataTable with responsive details configuration
                 table.DataTable({
-                    responsive: {
-                        details: {
-                            type: 'column',
-                            target: 0
-                        }
-                    },
-                    columnDefs: [
-                        { className: 'dtr-control', targets: 0 }
-                    ],
+                    responsive: true,
                     pageLength: 10,
                     lengthMenu: [5, 10, 25, 50, 100],
                     order: [] // Maintain database ordering initially

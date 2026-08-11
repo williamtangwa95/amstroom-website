@@ -9,7 +9,7 @@
     <div class="slider-wrapper">
         @forelse($sliders as $index => $slide)
         <div class="slide {{ $index === 0 ? 'active' : '' }}"
-            style="background: linear-gradient(rgba(11,79,181,0.8), rgba(57,168,232,0.75)), url('{{ $slide->image_path ? asset($slide->image_path) : 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80' }}') no-repeat center center/cover;"
+            style="background: linear-gradient(rgba(11,79,181,{{ $slide->overlay_opacity }}), rgba(57,168,232,{{ number_format($slide->overlay_opacity * 0.94, 2) }})), url('{{ $slide->image_path ? asset($slide->image_path) : 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80' }}') no-repeat center center/cover;"
             data-slide-index="{{ $index }}">
             <div class="hero-content" style="margin-top: 20px;">
                 <h1>{{ $slide->title }}</h1>

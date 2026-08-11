@@ -68,6 +68,17 @@
                     </div>
                 </div>
 
+                <div class="form-group" style="margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px;">
+                    <label for="overlay_opacity">Overlay Opacity (Background Image Visibility) *</label>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input type="range" id="overlay_opacity_range" min="0" max="1" step="0.05" value="{{ old('overlay_opacity', '0.70') }}" style="flex: 1; cursor: pointer; height: 6px; border-radius: 3px; accent-color: var(--royal);" oninput="document.getElementById('overlay_opacity').value = this.value">
+                        <input type="number" name="overlay_opacity" id="overlay_opacity" class="form-control" style="width: 100px; text-align: center;" min="0" max="1" step="0.01" value="{{ old('overlay_opacity', '0.70') }}" oninput="document.getElementById('overlay_opacity_range').value = this.value" required>
+                    </div>
+                    <small style="color: #64748b; font-size: 12px; margin-top: 5px; display: block;">
+                        Value between 0.00 (transparent overlay, image fully visible) and 1.00 (solid color overlay, image hidden). We recommend 0.60 to 0.80 for the best balance of text legibility.
+                    </small>
+                </div>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
                         <label for="status">Status *</label>

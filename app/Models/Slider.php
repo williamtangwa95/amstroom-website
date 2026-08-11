@@ -14,6 +14,7 @@ class Slider extends Model
         'secondary_btn_text',
         'secondary_btn_url',
         'image_path',
+        'overlay_opacity',
         'status',
         'sort_order'
     ];

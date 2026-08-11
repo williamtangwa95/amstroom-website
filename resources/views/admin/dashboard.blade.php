@@ -97,7 +97,13 @@
                     <tbody>
                         @forelse($recentRequests as $req)
                             <tr style="border-bottom: 1px solid #eef2f6;">
-                                <td style="padding: 12px; font-weight: 600; color: var(--dark);">{{ $req->name }}</td>
+                                <td style="padding: 12px; vertical-align: middle;">
+                                    <div style="font-weight: 600; color: var(--dark);">{{ $req->name }}</div>
+                                    <div style="font-size: 11.5px; margin-top: 3px; display: flex; align-items: center; gap: 8px;">
+                                        <a href="tel:{{ $req->phone }}" style="color: #64748b; text-decoration: none;"><i class="fas fa-phone-alt" style="font-size: 9px;"></i> {{ $req->phone }}</a>
+                                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $req->phone) }}" target="_blank" style="color: #28a745; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 2px;" title="WhatsApp Chat"><i class="fab fa-whatsapp"></i> Chat</a>
+                                    </div>
+                                </td>
                                 <td style="padding: 12px;">
                                     @if($req->request_type === 'cart')
                                         <span style="background: rgba(40, 167, 69, 0.1); color: #28a745; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">Cart Order</span>
