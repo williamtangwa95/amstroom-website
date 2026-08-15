@@ -64,6 +64,92 @@
     @endif
 </section>
 
+<!-- PRODUCTS SECTION -->
+<section class="products" id="products" style="background-color: #bae6fd; background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2752%27 height=%2790%27%3E%3Cpath fill=%27none%27 stroke=%27%230B4FB5%27 stroke-opacity=%270.15%27 stroke-width=%271.2%27 d=%27m0,15 26-15 26,15v30l-26,15-26-15zM26,60v30%27/%3E%3C/svg%3E'), linear-gradient(180deg, #bae6fd 0%, #7dd3fc 100%); background-repeat: repeat, no-repeat;">
+    <div class="section-title">
+        <h2>Our Featured Products</h2>
+        <p style="color: #0f172a; font-weight: 500; opacity: 0.8;">Latest Deals. Best Prices. Trusted Technology</p>
+    </div>
+
+    <!-- Live Search Field -->
+    <div class="search-container" style="max-width: 500px; margin: -20px auto 40px auto; position: relative; padding: 0 20px;">
+        <input type="text" id="productSearch" placeholder="Search for products (e.g. Dell, RAM, Mouse)..." style="color: #222; border: 2px solid #eef2f6; background: #f8fafc; padding: 14px 20px 14px 50px; border-radius: 50px; font-size: 15px; width: 100%; outline: none; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+        <i class="fas fa-search" style="position: absolute; left: 38px; top: 50%; transform: translateY(-50%); color: var(--royal); font-size: 16px;"></i>
+    </div>
+
+    <div class="product-grid">
+        @forelse($products as $product)
+        <div class="card {{ $loop->index >= 6 ? 'hidden-product' : '' }}">
+            <div style="position: relative; overflow: hidden; width: 100%; height: 220px;">
+                @if($product->image_url)
+                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
+                @else
+                <img src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
+                @endif
+                @if(!$product->in_stock)
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(9, 32, 58, 0.45); color: white; font-weight: 800; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; z-index: 2;">Out of Stock</div>
+                @endif
+            </div>
+
+            <div class="card-content">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    @if($product->badge)
+                    <span class="badge">{{ strtoupper($product->badge) }}</span>
+                    @endif
+                    @if(!$product->in_stock)
+                    <span class="badge" style="background: #dc3545;">OUT OF STOCK</span>
+                    @endif
+                </div>
+
+                <h3>{{ $product->name }}</h3>
+                <p>{!! nl2br(e($product->description)) !!}</p>
+
+                <div class="price">
+                    @if($product->is_from_price)
+                    From
+                    @endif
+                    TZS {{ number_format($product->price, 0) }}
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: auto; width: 100%;">
+                    @if($product->in_stock)
+                    <button class="order-btn add-to-cart-btn" style="flex: 1; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="addToCart(this)" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}" data-image="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                    @else
+                    <button class="order-btn" style="flex: 1; border: none; background: #64748b; color: white; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.8;" disabled>
+                        <i class="fas fa-ban"></i> Out of Stock
+                    </button>
+                    @endif
+
+                    @php
+                    $waMsg = $product->in_stock
+                    ? "Hello " . setting('office_name', 'AMSTROOM COMPUTERS') . ", I would like to order the product: " . $product->name
+                    : "Hello " . setting('office_name', 'AMSTROOM COMPUTERS') . ", I would like to inquire about the out of stock product: " . $product->name . ". When will it be back in stock?";
+                    @endphp
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}?text={{ rawurlencode($waMsg) }}" class="order-btn" style="background: transparent; border: 2px solid var(--gold); color: var(--gold); display: flex; align-items: center; justify-content: center; width: 48px; padding: 0; flex-shrink: 0;" target="_blank" title="{{ $product->in_stock ? 'Order directly via WhatsApp' : 'Inquire via WhatsApp' }}">
+                        <i class="fab fa-whatsapp" style="font-size: 20px; margin: 0; color: inherit;"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        @empty
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+            <i class="fas fa-box-open" style="font-size: 50px; margin-bottom: 15px; color: var(--royal);"></i>
+            <p>No products available in store right now. Check back soon!</p>
+        </div>
+        @endforelse
+    </div>
+
+    @if(count($products) > 6)
+    <div class="view-more-container" style="text-align: center; margin-top: 40px;">
+        <button id="viewMoreBtn" class="btn btn-primary" onclick="toggleViewMore()">
+            View More Products <i class="fas fa-chevron-down" style="margin-left: 8px;"></i>
+        </button>
+    </div>
+    @endif
+</section>
+
 <!-- STATS SECTION -->
 <section class="stats">
     <div class="stats-grid">
@@ -93,99 +179,13 @@
     </div>
 </section>
 
-<!-- PRODUCTS SECTION -->
-<section class="products" id="products">
-    <div class="section-title">
-        <h2>Featured Products</h2>
-        <p>Latest Offers Available In Store</p>
-    </div>
-
-    <!-- Live Search Field -->
-    <div class="search-container" style="max-width: 500px; margin: -20px auto 40px auto; position: relative; padding: 0 20px;">
-        <input type="text" id="productSearch" placeholder="Search for products (e.g. Dell, RAM, Mouse)..." style="color: #222; border: 2px solid #eef2f6; background: #f8fafc; padding: 14px 20px 14px 50px; border-radius: 50px; font-size: 15px; width: 100%; outline: none; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-        <i class="fas fa-search" style="position: absolute; left: 38px; top: 50%; transform: translateY(-50%); color: var(--royal); font-size: 16px;"></i>
-    </div>
-
-    <div class="product-grid">
-        @forelse($products as $product)
-        <div class="card {{ $loop->index >= 6 ? 'hidden-product' : '' }}">
-            <div style="position: relative; overflow: hidden; width: 100%; height: 220px;">
-                @if($product->image_url)
-                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
-                @else
-                <img src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
-                @endif
-                @if(!$product->in_stock)
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(9, 32, 58, 0.45); color: white; font-weight: 800; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; z-index: 2;">Out of Stock</div>
-                @endif
-            </div>
-
-            <div class="card-content">
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    @if($product->badge)
-                    <span class="badge">{{ strtoupper($product->badge) }}</span>
-                    @endif
-                    @if(!$product->in_stock)
-                    <span class="badge" style="background: #dc3545;">OUT OF STOCK</span>
-                    @endif
-                </div>
-
-                <h3>{{ $product->name }}</h3>
-                <p>{!! nl2br(e($product->description)) !!}</p>
-
-                <div class="price">
-                    @if($product->is_from_price)
-                    From
-                    @endif
-                    TZS {{ number_format($product->price, 0) }}
-                </div>
-
-                <div style="display: flex; gap: 10px; margin-top: auto; width: 100%;">
-                    @if($product->in_stock)
-                        <button class="order-btn add-to-cart-btn" style="flex: 1; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="addToCart(this)" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}" data-image="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}">
-                            <i class="fas fa-cart-plus"></i> Add to Cart
-                        </button>
-                    @else
-                        <button class="order-btn" style="flex: 1; border: none; background: #64748b; color: white; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.8;" disabled>
-                            <i class="fas fa-ban"></i> Out of Stock
-                        </button>
-                    @endif
-
-                    @php
-                        $waMsg = $product->in_stock 
-                            ? "Hello " . setting('office_name', 'AMSTROOM COMPUTERS') . ", I would like to order the product: " . $product->name
-                            : "Hello " . setting('office_name', 'AMSTROOM COMPUTERS') . ", I would like to inquire about the out of stock product: " . $product->name . ". When will it be back in stock?";
-                    @endphp
-                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}?text={{ rawurlencode($waMsg) }}" class="order-btn" style="background: transparent; border: 2px solid var(--gold); color: var(--gold); display: flex; align-items: center; justify-content: center; width: 48px; padding: 0; flex-shrink: 0;" target="_blank" title="{{ $product->in_stock ? 'Order directly via WhatsApp' : 'Inquire via WhatsApp' }}">
-                        <i class="fab fa-whatsapp" style="font-size: 20px; margin: 0; color: inherit;"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-        @empty
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-            <i class="fas fa-box-open" style="font-size: 50px; margin-bottom: 15px; color: var(--royal);"></i>
-            <p>No products available in store right now. Check back soon!</p>
-        </div>
-        @endforelse
-    </div>
-
-    @if(count($products) > 6)
-    <div class="view-more-container" style="text-align: center; margin-top: 40px;">
-        <button id="viewMoreBtn" class="btn btn-primary" onclick="toggleViewMore()">
-            View More Products <i class="fas fa-chevron-down" style="margin-left: 8px;"></i>
-        </button>
-    </div>
-    @endif
-</section>
-
 <!-- PRODUCT REQUEST SECTION -->
 <section class="product-request-section" id="request-product">
     <div class="product-request-container">
         <div class="product-request-info">
             <h2>Can't find the product you're looking for?</h2>
             <p>
-                At {{ setting('office_name', 'AMSTROOM COMPUTERS') }}, we source high-quality laptops, custom desktops, and accessories tailored exactly to your requirements. 
+                At {{ setting('office_name', 'AMSTROOM COMPUTERS') }}, we source high-quality laptops, custom desktops, and accessories tailored exactly to your requirements.
                 Fill out this request form with your desired specifications (processor, RAM, storage, brand, budget, etc.), and our sales team will find it for you!
             </p>
             <div class="product-request-benefits">
@@ -215,31 +215,31 @@
 
         <div class="product-request-form-wrapper">
             <h3>Submit a Product Request</h3>
-            
+
             <form id="productRequestForm" action="{{ route('product-request.submit') }}" method="POST">
                 @csrf
                 <input type="hidden" name="request_type" value="custom">
-                
+
                 <div class="form-group">
                     <label for="req_name">Full Name *</label>
                     <input type="text" name="name" id="req_name" class="form-control" placeholder="Enter your full name" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="req_phone">Phone / WhatsApp *</label>
                     <input type="text" name="phone" id="req_phone" class="form-control" placeholder="e.g. +255 710 635 173" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="req_email">Email Address (Optional)</label>
                     <input type="email" name="email" id="req_email" class="form-control" placeholder="Enter your email address">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="req_details">Specifications / What product are you looking for? *</label>
                     <textarea name="details" id="req_details" rows="5" class="form-control" placeholder="Describe the laptop, desktop, accessory or service you need. Include brands, specifications, model numbers, budget, etc." required></textarea>
                 </div>
-                
+
                 <button type="submit" class="submit-btn" style="width: 100%;">
                     Submit Request <i class="fas fa-paper-plane"></i>
                 </button>
@@ -457,71 +457,71 @@
             @endif
         </div>
     </div>
-<!-- FLOATING SHOPPING CART BUTTON -->
-<button class="cart-floating-btn" id="cartFloatingBtn" onclick="toggleCartDrawer()" style="display: none;">
-    <i class="fas fa-shopping-cart"></i>
-    <span class="cart-badge" id="cartBadge">0</span>
-</button>
+    <!-- FLOATING SHOPPING CART BUTTON -->
+    <button class="cart-floating-btn" id="cartFloatingBtn" onclick="toggleCartDrawer()" style="display: none;">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+    </button>
 
-<!-- CART DRAWER OVERLAY -->
-<div class="cart-overlay" id="cartOverlay" onclick="toggleCartDrawer()"></div>
+    <!-- CART DRAWER OVERLAY -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCartDrawer()"></div>
 
-<!-- CART DRAWER PANEL -->
-<div class="cart-drawer" id="cartDrawer">
-    <div class="cart-drawer-header">
-        <h3><i class="fas fa-shopping-cart"></i> Shopping Cart</h3>
-        <button class="cart-close-btn" onclick="toggleCartDrawer()">&times;</button>
-    </div>
-    
-    <div class="cart-drawer-body">
-        <!-- Cart Items list -->
-        <div class="cart-items-container" id="cartItemsContainer">
-            <!-- Dynamically populated via JS -->
+    <!-- CART DRAWER PANEL -->
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-drawer-header">
+            <h3><i class="fas fa-shopping-cart"></i> Shopping Cart</h3>
+            <button class="cart-close-btn" onclick="toggleCartDrawer()">&times;</button>
         </div>
-        
-        <!-- Totals & Checkout -->
-        <div class="cart-totals" id="cartTotalsSection" style="display: none;">
-            <div class="cart-total-row">
-                <span>Subtotal:</span>
-                <span id="cartSubtotal">TZS 0</span>
+
+        <div class="cart-drawer-body">
+            <!-- Cart Items list -->
+            <div class="cart-items-container" id="cartItemsContainer">
+                <!-- Dynamically populated via JS -->
             </div>
-            
-            <div class="cart-checkout-form">
-                <h4>Checkout Details</h4>
-                <form id="cartCheckoutForm" action="{{ route('product-request.submit') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="request_type" value="cart">
-                    <input type="hidden" name="total_price" id="cartFormTotalPrice" value="0">
-                    <input type="hidden" name="details" id="cartFormDetails" value="">
-                    
-                    <div class="cart-form-group">
-                        <label for="cart_name">Full Name *</label>
-                        <input type="text" name="name" id="cart_name" class="cart-form-control" placeholder="Enter your full name" required>
-                    </div>
-                    
-                    <div class="cart-form-group">
-                        <label for="cart_phone">Phone / WhatsApp Number *</label>
-                        <input type="text" name="phone" id="cart_phone" class="cart-form-control" placeholder="e.g. +255 710 635 173" required>
-                    </div>
-                    
-                    <div class="cart-form-group">
-                        <label for="cart_email">Email Address (Optional)</label>
-                        <input type="email" name="email" id="cart_email" class="cart-form-control" placeholder="Enter your email address">
-                    </div>
-                    
-                    <div class="cart-checkout-actions">
-                        <button type="submit" class="btn-checkout-web" id="btnCheckoutWeb">
-                            Place Order (Submit Online) <i class="fas fa-paper-plane"></i>
-                        </button>
-                        <button type="button" class="btn-checkout-wa" onclick="checkoutViaWhatsApp()">
-                            Order via WhatsApp <i class="fab fa-whatsapp"></i>
-                        </button>
-                    </div>
-                </form>
+
+            <!-- Totals & Checkout -->
+            <div class="cart-totals" id="cartTotalsSection" style="display: none;">
+                <div class="cart-total-row">
+                    <span>Subtotal:</span>
+                    <span id="cartSubtotal">TZS 0</span>
+                </div>
+
+                <div class="cart-checkout-form">
+                    <h4>Checkout Details</h4>
+                    <form id="cartCheckoutForm" action="{{ route('product-request.submit') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="request_type" value="cart">
+                        <input type="hidden" name="total_price" id="cartFormTotalPrice" value="0">
+                        <input type="hidden" name="details" id="cartFormDetails" value="">
+
+                        <div class="cart-form-group">
+                            <label for="cart_name">Full Name *</label>
+                            <input type="text" name="name" id="cart_name" class="cart-form-control" placeholder="Enter your full name" required>
+                        </div>
+
+                        <div class="cart-form-group">
+                            <label for="cart_phone">Phone / WhatsApp Number *</label>
+                            <input type="text" name="phone" id="cart_phone" class="cart-form-control" placeholder="e.g. +255 710 635 173" required>
+                        </div>
+
+                        <div class="cart-form-group">
+                            <label for="cart_email">Email Address (Optional)</label>
+                            <input type="email" name="email" id="cart_email" class="cart-form-control" placeholder="Enter your email address">
+                        </div>
+
+                        <div class="cart-checkout-actions">
+                            <button type="submit" class="btn-checkout-web" id="btnCheckoutWeb">
+                                Place Order (Submit Online) <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button type="button" class="btn-checkout-wa" onclick="checkoutViaWhatsApp()">
+                                Order via WhatsApp <i class="fab fa-whatsapp"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 </section>
 @endsection
 
@@ -558,7 +558,7 @@
                 quantity: 1
             });
         }
-        
+
         saveCart();
         showToast(`Added "${name}" to cart!`);
     }
@@ -588,16 +588,16 @@
             container.className = 'toast-container';
             document.body.appendChild(container);
         }
-        
+
         const toast = document.createElement('div');
         toast.className = 'toast toast-success show';
         toast.innerHTML = `
             <i class="fas fa-check-circle" style="color: var(--gold); font-size: 20px;"></i>
             <span>${message}</span>
         `;
-        
+
         container.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => {
@@ -612,16 +612,16 @@
         const cartItemsContainer = document.getElementById('cartItemsContainer');
         const cartTotalsSection = document.getElementById('cartTotalsSection');
         const cartSubtotal = document.getElementById('cartSubtotal');
-        
+
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-        
+
         if (totalItems > 0) {
             cartFloatingBtn.style.display = 'flex';
             cartBadge.textContent = totalItems;
         } else {
             cartFloatingBtn.style.display = 'none';
         }
-        
+
         if (cart.length === 0) {
             cartItemsContainer.innerHTML = `
                 <div class="cart-empty-state">
@@ -633,11 +633,11 @@
         } else {
             let html = '';
             let subtotal = 0;
-            
+
             cart.forEach(item => {
                 const itemTotal = item.price * item.quantity;
                 subtotal += itemTotal;
-                
+
                 html += `
                     <div class="cart-item">
                         <img src="${item.image}" alt="${item.name}" class="cart-item-img">
@@ -659,11 +659,11 @@
                     </div>
                 `;
             });
-            
+
             cartItemsContainer.innerHTML = html;
             cartSubtotal.textContent = `TZS ${subtotal.toLocaleString()}`;
             cartTotalsSection.style.display = 'block';
-            
+
             document.getElementById('cartFormTotalPrice').value = subtotal;
             document.getElementById('cartFormDetails').value = JSON.stringify(cart);
         }
@@ -673,23 +673,23 @@
         const name = document.getElementById('cart_name').value.trim();
         const phone = document.getElementById('cart_phone').value.trim();
         const email = document.getElementById('cart_email').value.trim();
-        
+
         if (!name || !phone) {
             alert('Please fill in your Name and Phone/WhatsApp number to complete the order.');
             document.getElementById('cart_name').focus();
             return;
         }
-        
+
         let text = `Hello {{ setting('office_name', 'AMSTROOM COMPUTERS') }},\n\n`;
         text += `I would like to place an order for the following items:\n`;
-        
+
         let subtotal = 0;
         cart.forEach((item, index) => {
             const itemTotal = item.price * item.quantity;
             subtotal += itemTotal;
             text += `${index + 1}. *${item.name}* (Qty: ${item.quantity}) - TZS ${itemTotal.toLocaleString()}\n`;
         });
-        
+
         text += `\n*Total Amount:* TZS ${subtotal.toLocaleString()}\n\n`;
         text += `*Customer Details:*\n`;
         text += `- Name: ${name}\n`;
@@ -697,77 +697,77 @@
         if (email) {
             text += `- Email: ${email}\n`;
         }
-        
+
         const whatsappNumber = "{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}";
         const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
-        
+
         const form = document.getElementById('cartCheckoutForm');
         const formData = new FormData(form);
-        
+
         fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            cart = [];
-            saveCart();
-            toggleCartDrawer();
-            form.reset();
-            window.open(url, '_blank');
-        })
-        .catch(err => {
-            console.error('Error saving order record:', err);
-            window.open(url, '_blank');
-        });
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                cart = [];
+                saveCart();
+                toggleCartDrawer();
+                form.reset();
+                window.open(url, '_blank');
+            })
+            .catch(err => {
+                console.error('Error saving order record:', err);
+                window.open(url, '_blank');
+            });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         updateCartUI();
-        
+
         const cartForm = document.getElementById('cartCheckoutForm');
         if (cartForm) {
             cartForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+
                 const formData = new FormData(this);
                 const submitBtn = document.getElementById('btnCheckoutWeb');
                 const originalText = submitBtn.innerHTML;
-                
+
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing Order...';
-                
+
                 fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                    
-                    if (data.success) {
-                        cart = [];
-                        saveCart();
-                        toggleCartDrawer();
-                        cartForm.reset();
-                        showToast('Order placed successfully! We will contact you soon.');
-                    } else {
-                        alert(data.message || 'Something went wrong. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
-                });
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+
+                        if (data.success) {
+                            cart = [];
+                            saveCart();
+                            toggleCartDrawer();
+                            cartForm.reset();
+                            showToast('Order placed successfully! We will contact you soon.');
+                        } else {
+                            alert(data.message || 'Something went wrong. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    });
             });
         }
 
@@ -775,39 +775,39 @@
         if (requestForm) {
             requestForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+
                 const formData = new FormData(this);
                 const submitBtn = this.querySelector('.submit-btn');
                 const originalText = submitBtn.innerHTML;
-                
+
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-                
+
                 fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                    
-                    if (data.success) {
-                        requestForm.reset();
-                        showToast('Request submitted successfully! We will contact you soon.');
-                    } else {
-                        alert(data.message || 'Something went wrong. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
-                });
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+
+                        if (data.success) {
+                            requestForm.reset();
+                            showToast('Request submitted successfully! We will contact you soon.');
+                        } else {
+                            alert(data.message || 'Something went wrong. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    });
             });
         }
     });
@@ -1170,14 +1170,22 @@
         align-items: center;
         justify-content: center;
         border: 2px solid var(--gold);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         animation: cartBounce 0.3s ease;
     }
 
     @keyframes cartBounce {
-        0% { transform: scale(0.5); }
-        50% { transform: scale(1.3); }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(0.5);
+        }
+
+        50% {
+            transform: scale(1.3);
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
 
     /* CART DRAWER OVERLAY */
@@ -1645,7 +1653,7 @@
             grid-template-columns: 1fr;
             gap: 40px;
         }
-        
+
         .product-request-info h2 {
             font-size: 30px;
         }

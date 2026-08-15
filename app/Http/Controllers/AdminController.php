@@ -86,7 +86,7 @@ class AdminController extends Controller
      */
     public function indexProducts()
     {
-        $products = Product::all();
+        $products = Product::orderBy('sort_order', 'asc')->orderBy('created_at', 'desc')->get();
         return view('admin.products.index', compact('products'));
     }
 
@@ -191,7 +191,10 @@ class AdminController extends Controller
             'in_stock' => 'boolean',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'image_url' => 'nullable|url',
+            'sort_order' => 'nullable|integer',
         ]);
+
+        $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->filled('category_id')) {
             $category = Category::find($request->input('category_id'));
@@ -254,7 +257,10 @@ class AdminController extends Controller
             'in_stock' => 'boolean',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'image_url' => 'nullable|url',
+            'sort_order' => 'nullable|integer',
         ]);
+
+        $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         if ($request->filled('category_id')) {
             $category = Category::find($request->input('category_id'));
@@ -296,13 +302,41 @@ class AdminController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully!');
     }
 
-    /**
-     * Delete the specified product from the database.
-     */
     public function deleteProduct(Product $product)
     {
         $product->delete();
         return redirect()->route('admin.dashboard')->with('success', 'Product deleted successfully!');
+    }
+
+    /**
+     * Reorder products from selection checkboxes.
+     */
+    public function reorderProducts(Request $request)
+    {
+        $orders = $request->input('orders', []);
+
+        if (empty($orders)) {
+            return back()->with('error', 'No products were selected for reordering.');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($orders) {
+            foreach ($orders as $id => $order) {
+                Product::where('id', $id)->update(['sort_order' => intval($order)]);
+            }
+        });
+
+        // Log the activity
+        try {
+            \App\Models\ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'updated',
+                'details' => ['message' => 'Reordered products using checkbox selection.', 'count' => count($orders)],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
+        } catch (\Exception $e) {}
+
+        return back()->with('success', 'Products reordered successfully!');
     }
 
     /**

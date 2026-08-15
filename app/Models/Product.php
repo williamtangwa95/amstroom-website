@@ -9,7 +9,7 @@ class Product extends Model
 {
     use LogsActivity;
 
-    protected $fillable = ['name', 'badge', 'description', 'price', 'is_from_price', 'in_stock', 'image_url', 'category_id'];
+    protected $fillable = ['name', 'badge', 'description', 'price', 'is_from_price', 'in_stock', 'image_url', 'category_id', 'sort_order'];
 
     /**
      * Get the category that the product belongs to.

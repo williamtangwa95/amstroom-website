@@ -48,6 +48,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     // Products CRUD
     Route::get('/products', [AdminController::class, 'indexProducts'])->name('products.index');
+    Route::post('/products/reorder', [AdminController::class, 'reorderProducts'])->name('products.reorder');
     Route::get('/products/create', [AdminController::class, 'createProduct'])->name('products.create');
     Route::post('/products/create', [AdminController::class, 'storeProduct'])->name('products.store');
     Route::get('/products/{product}/edit', [AdminController::class, 'editProduct'])->name('products.edit');

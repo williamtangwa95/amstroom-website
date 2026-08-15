@@ -221,6 +221,11 @@ nav a:hover {
 
 .products {
     padding: 90px 20px;
+    background-color: #bae6fd;
+    background-image: 
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='90'%3E%3Cpath fill='none' stroke='%230B4FB5' stroke-opacity='0.15' stroke-width='1.2' d='m0,15 26-15 26,15v30l-26,15-26-15zM26,60v30'/%3E%3C/svg%3E"),
+        linear-gradient(180deg, #bae6fd 0%, #7dd3fc 100%);
+    background-repeat: repeat, no-repeat;
 }
 
 .product-grid {

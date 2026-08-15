@@ -14,7 +14,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $products = Product::all();
+        $products = Product::orderBy('sort_order', 'asc')->orderBy('created_at', 'desc')->get();
         $sliders = \App\Models\Slider::where('status', true)->orderBy('sort_order')->get();
         $services = \App\Models\Service::orderBy('sort_order')->get();
         $whyChooses = \App\Models\WhyChoose::orderBy('sort_order')->get();
