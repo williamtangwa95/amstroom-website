@@ -79,7 +79,7 @@
 
     <div class="product-grid">
         @forelse($products as $product)
-        <div class="card {{ $loop->index >= 6 ? 'hidden-product' : '' }}">
+        <div class="card {{ $loop->index >= 8 ? 'hidden-product' : '' }}">
             <div style="position: relative; overflow: hidden; width: 100%; height: 220px;">
                 @if($product->image_url)
                 <img src="{{ $product->image_url }}" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
@@ -113,6 +113,10 @@
 
                 <div style="display: flex; gap: 10px; margin-top: auto; width: 100%;">
                     @if($product->in_stock)
+                    <button class="order-btn add-to-cart-btn buy-now-btn" style="flex: 1; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="buyNow(this)" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}" data-image="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}">
+                        <i class="fas fa-shopping-cart"></i> Buy now
+                    </button>
+                    
                     <button class="order-btn add-to-cart-btn" style="flex: 1; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="addToCart(this)" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}" data-image="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}">
                         <i class="fas fa-cart-plus"></i> Add to Cart
                     </button>
@@ -141,7 +145,7 @@
         @endforelse
     </div>
 
-    @if(count($products) > 6)
+    @if(count($products) > 8)
     <div class="view-more-container" style="text-align: center; margin-top: 40px;">
         <button id="viewMoreBtn" class="btn btn-primary" onclick="toggleViewMore()">
             View More Products <i class="fas fa-chevron-down" style="margin-left: 8px;"></i>
@@ -150,30 +154,52 @@
     @endif
 </section>
 
-<!-- STATS SECTION -->
-<section class="stats">
-    <div class="stats-grid">
-        @forelse($stats as $stat)
-        <div class="stat">
-            <h2>{{ $stat->value }}</h2>
-            <p>{{ $stat->label }}</p>
+<!-- SERVICES SECTION -->
+<section class="services" id="services">
+    <div class="section-title">
+        <h2>Our Professional Services</h2>
+        <p>
+            We provide complete computer sales, repair, installation, and IT solutions
+            for individuals, businesses, schools, and organizations.
+        </p>
+    </div>
+
+    <div class="service-grid">
+        @forelse($services as $service)
+        <div class="service-card">
+            <div class="service-icon"><i class="{{ $service->icon }}"></i></div>
+            <h3>{{ $service->title }}</h3>
+            <p>{!! nl2br(e($service->description)) !!}</p>
         </div>
         @empty
-        <div class="stat">
-            <h2>500+</h2>
-            <p>Happy Customers</p>
+        <div class="service-card">
+            <div class="service-icon"><i class="fas fa-laptop"></i></div>
+            <h3>Laptop Sales</h3>
+            <p>High-quality new and refurbished laptops from Dell, HP, Lenovo, Acer, ASUS, Apple and more.</p>
         </div>
-        <div class="stat">
-            <h2>30+ Days</h2>
-            <p>Warranty</p>
+        @endforelse
+    </div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section class="why" id="why">
+    <div class="section-title">
+        <h2>Why Choose {{ setting('office_name', 'AMSTROOM COMPUTERS') }}?</h2>
+        <p>We are committed to delivering quality products, reliable IT solutions, and exceptional customer service you can trust.</p>
+    </div>
+
+    <div class="why-grid">
+        @forelse($whyChooses as $wc)
+        <div class="why-card">
+            <div class="why-icon"><i class="{{ $wc->icon }}"></i></div>
+            <h3>{{ $wc->title }}</h3>
+            <p>{!! nl2br(e($wc->description)) !!}</p>
         </div>
-        <div class="stat">
-            <h2>24/7</h2>
-            <p>Customer Support</p>
-        </div>
-        <div class="stat">
-            <h2>100%</h2>
-            <p>Quality Products</p>
+        @empty
+        <div class="why-card">
+            <div class="why-icon"><i class="fas fa-shield-halved"></i></div>
+            <h3>Quality Guaranteed</h3>
+            <p>Every product is carefully tested and verified before delivery, ensuring reliability and excellent performance.</p>
         </div>
         @endforelse
     </div>
@@ -248,56 +274,36 @@
     </div>
 </section>
 
-<!-- SERVICES SECTION -->
-<section class="services" id="services">
-    <div class="section-title">
-        <h2>Our Professional Services</h2>
-        <p>
-            We provide complete computer sales, repair, installation, and IT solutions
-            for individuals, businesses, schools, and organizations.
-        </p>
-    </div>
-
-    <div class="service-grid">
-        @forelse($services as $service)
-        <div class="service-card">
-            <div class="service-icon"><i class="{{ $service->icon }}"></i></div>
-            <h3>{{ $service->title }}</h3>
-            <p>{!! nl2br(e($service->description)) !!}</p>
+<!-- STATS SECTION -->
+<section class="stats">
+    <div class="stats-grid">
+        @forelse($stats as $stat)
+        <div class="stat">
+            <h2>{{ $stat->value }}</h2>
+            <p>{{ $stat->label }}</p>
         </div>
         @empty
-        <div class="service-card">
-            <div class="service-icon"><i class="fas fa-laptop"></i></div>
-            <h3>Laptop Sales</h3>
-            <p>High-quality new and refurbished laptops from Dell, HP, Lenovo, Acer, ASUS, Apple and more.</p>
+        <div class="stat">
+            <h2>500+</h2>
+            <p>Happy Customers</p>
+        </div>
+        <div class="stat">
+            <h2>30+ Days</h2>
+            <p>Warranty</p>
+        </div>
+        <div class="stat">
+            <h2>24/7</h2>
+            <p>Customer Support</p>
+        </div>
+        <div class="stat">
+            <h2>100%</h2>
+            <p>Quality Products</p>
         </div>
         @endforelse
     </div>
 </section>
 
-<!-- WHY CHOOSE US -->
-<section class="why" id="why">
-    <div class="section-title">
-        <h2>Why Choose {{ setting('office_name', 'AMSTROOM COMPUTERS') }}?</h2>
-        <p>We are committed to delivering quality products, reliable IT solutions, and exceptional customer service you can trust.</p>
-    </div>
 
-    <div class="why-grid">
-        @forelse($whyChooses as $wc)
-        <div class="why-card">
-            <div class="why-icon"><i class="{{ $wc->icon }}"></i></div>
-            <h3>{{ $wc->title }}</h3>
-            <p>{!! nl2br(e($wc->description)) !!}</p>
-        </div>
-        @empty
-        <div class="why-card">
-            <div class="why-icon"><i class="fas fa-shield-halved"></i></div>
-            <h3>Quality Guaranteed</h3>
-            <p>Every product is carefully tested and verified before delivery, ensuring reliability and excellent performance.</p>
-        </div>
-        @endforelse
-    </div>
-</section>
 
 <!-- CONTACT & GET IN TOUCH -->
 <section class="contact" id="contact">
@@ -322,31 +328,32 @@
                     </ul>
                 </div>
                 @endif
+                <div class="row">
+                    <form action="{{ route('contact.submit') }}" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label for="name">Your Name *</label>
+                            <input type="text" name="name" id="name" class="form-control" placeholder="Enter your full name" value="{{ old('name') }}" required>
+                        </div>
 
-                <form action="{{ route('contact.submit') }}" method="POST">
-                    @csrf
-                    <div class="form-group">
-                        <label for="name">Your Name *</label>
-                        <input type="text" name="name" id="name" class="form-control" placeholder="Enter your full name" value="{{ old('name') }}" required>
-                    </div>
+                        <div class="form-group">
+                            <label for="email">Email Address (Optional)</label>
+                            <input type="email" name="email" id="email" class="form-control" placeholder="Enter your email address" value="{{ old('email') }}">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="email">Email Address (Optional)</label>
-                        <input type="email" name="email" id="email" class="form-control" placeholder="Enter your email address" value="{{ old('email') }}">
-                    </div>
+                        <div class="form-group">
+                            <label for="phone">Phone / WhatsApp Number *</label>
+                            <input type="text" name="phone" id="phone" class="form-control" placeholder="e.g. +255 710 635 173" value="{{ old('phone') }}" required>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="phone">Phone / WhatsApp Number *</label>
-                        <input type="text" name="phone" id="phone" class="form-control" placeholder="e.g. +255 710 635 173" value="{{ old('phone') }}" required>
-                    </div>
+                        <div class="form-group">
+                            <label for="message">Message *</label>
+                            <textarea name="message" id="message" rows="5" class="form-control" placeholder="Describe how we can help you..." required>{{ old('message') }}</textarea>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="message">Message *</label>
-                        <textarea name="message" id="message" rows="5" class="form-control" placeholder="Describe how we can help you..." required>{{ old('message') }}</textarea>
-                    </div>
-
-                    <button type="submit" class="submit-btn">Send Message <i class="fas fa-paper-plane"></i></button>
-                </form>
+                        <button type="submit" class="submit-btn">Send Message <i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
             </div>
 
             <!-- Basic Contact Cards -->
@@ -376,7 +383,7 @@
                 }
                 }
                 @endphp
-                <div class="contact-info-grid">
+                <div class="contact-info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
                     <div class="contact-item">
                         <div class="icon"><i class="fas fa-map-marker-alt"></i></div>
                         <div class="details">
@@ -402,7 +409,7 @@
                         <div class="icon"><i class="fas fa-envelope"></i></div>
                         <div class="details">
                             <h3>Email</h3>
-                            <a href="mailto:{{ $contactEmail }}" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <a href="mailto:{{ $contactEmail }}" style="display: inline-flex; align-items: center; gap: 8px; word-break: break-all; overflow-wrap: break-word;">
                                 <i class="fas fa-envelope" style="font-size: 13px; color: var(--gold);"></i> {{ $contactEmail }}
                             </a>
                         </div>
@@ -469,7 +476,7 @@
     <!-- CART DRAWER PANEL -->
     <div class="cart-drawer" id="cartDrawer">
         <div class="cart-drawer-header">
-            <h3><i class="fas fa-shopping-cart"></i> Shopping Cart</h3>
+            <h3 id="cartDrawerTitle"><i class="fas fa-shopping-cart"></i> Shopping Cart</h3>
             <button class="cart-close-btn" onclick="toggleCartDrawer()">&times;</button>
         </div>
 
@@ -496,25 +503,65 @@
 
                         <div class="cart-form-group">
                             <label for="cart_name">Full Name *</label>
-                            <input type="text" name="name" id="cart_name" class="cart-form-control" placeholder="Enter your full name" required>
+                            <input type="text" name="name" id="cart_name" class="cart-form-control" placeholder="Enter your full name" required style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; background: white;">
                         </div>
 
                         <div class="cart-form-group">
                             <label for="cart_phone">Phone / WhatsApp Number *</label>
-                            <input type="text" name="phone" id="cart_phone" class="cart-form-control" placeholder="e.g. +255 710 635 173" required>
+                            <input type="text" name="phone" id="cart_phone" class="cart-form-control" placeholder="e.g. +255 710 635 173" required style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; background: white;">
                         </div>
 
                         <div class="cart-form-group">
                             <label for="cart_email">Email Address (Optional)</label>
-                            <input type="email" name="email" id="cart_email" class="cart-form-control" placeholder="Enter your email address">
+                            <input type="email" name="email" id="cart_email" class="cart-form-control" placeholder="Enter your email address" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; background: white;">
+                        </div>
+
+                        <div class="cart-form-group" style="margin-top: 15px;">
+                            <label for="cart_payment_method" style="font-weight: 600; display: block; margin-bottom: 6px; font-size: 13.5px;">Payment Method *</label>
+                            <select name="payment_method_id" id="cart_payment_method" class="cart-form-control" required onchange="selectPaymentMethod(this)" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; box-sizing: border-box; cursor: pointer;">
+                                <option value="">-- Select Payment Method --</option>
+                                @foreach($paymentMethods as $method)
+                                    <option value="{{ $method->id }}" data-account="{{ $method->account_number }}" data-account-name="{{ $method->account_name }}" data-logo="{{ $method->logo_path ? asset($method->logo_path) : '' }}">{{ $method->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Selected Payment Method Details box -->
+                        <div id="payment_details_box" style="display: none; margin-top: 12px; padding: 15px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; box-sizing: border-box;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <img id="payment_method_logo" src="" alt="Logo" style="height: 32px; width: 32px; object-fit: contain; border-radius: 4px; display: none; background: white; border: 1px solid #e2e8f0; padding: 2px;">
+                                <strong id="payment_method_name" style="font-size: 14px; color: var(--dark);"></strong>
+                            </div>
+                            <div style="font-size: 13px; color: #334155; margin-bottom: 8px;" id="payment_method_name_row">
+                                <span>Account Name:</span>
+                                <strong id="payment_method_account_name" style="color: var(--dark); font-size: 13.5px; display: block; margin-top: 2px;"></strong>
+                            </div>
+                            <div style="font-size: 13px; color: #334155; margin-bottom: 10px;">
+                                <span>Account / Lipa Number:</span>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap;">
+                                    <code id="payment_method_account" style="font-family: monospace; font-size: 14px; font-weight: 700; color: #0B4FB5; background: #eff6ff; padding: 3px 8px; border-radius: 4px; border: 1px solid #bfdbfe;"></code>
+                                    <button type="button" onclick="copyAccountNumber()" style="background: var(--gold); border: none; color: black; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                        <i class="far fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+                            <small style="color: #64748b; font-size: 11.5px;">Please pay to the number above and enter your transaction reference code below.</small>
+                        </div>
+
+                        <div class="cart-form-group" style="margin-top: 15px;">
+                            <label for="cart_reference_number" style="font-weight: 600; display: block; margin-bottom: 6px; font-size: 13.5px;">Reference Payment Number (Optional)</label>
+                            <input type="text" name="reference_number" id="cart_reference_number" class="cart-form-control" placeholder="e.g. PP234098X12" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; background: white;">
                         </div>
 
                         <div class="cart-checkout-actions">
                             <button type="submit" class="btn-checkout-web" id="btnCheckoutWeb">
                                 Place Order (Submit Online) <i class="fas fa-paper-plane"></i>
                             </button>
-                            <button type="button" class="btn-checkout-wa" onclick="checkoutViaWhatsApp()">
+                            <button type="button" class="btn-checkout-wa" id="btnCheckoutWa" onclick="checkoutViaWhatsApp()">
                                 Order via WhatsApp <i class="fab fa-whatsapp"></i>
+                            </button>
+                            <button type="submit" class="btn-checkout-complete" id="btnCheckoutComplete" style="display: none; background: #28a745 !important; color: white !important; width: 100%; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'">
+                                Complete Payment <i class="fas fa-check-circle"></i>
                             </button>
                         </div>
                     </form>
@@ -535,12 +582,81 @@
         updateCartUI();
     }
 
+    let isBuyNowTrigger = false;
+
     function toggleCartDrawer() {
-        document.getElementById('cartDrawer').classList.toggle('active');
-        document.getElementById('cartOverlay').classList.toggle('active');
+        const drawer = document.getElementById('cartDrawer');
+        const overlay = document.getElementById('cartOverlay');
+        drawer.classList.toggle('active');
+        overlay.classList.toggle('active');
+
+        if (drawer.classList.contains('active')) {
+            const titleEl = document.getElementById('cartDrawerTitle');
+            if (titleEl) {
+                if (isBuyNowTrigger) {
+                    titleEl.setAttribute('data-checkout-mode', 'buy-now');
+                    titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Proceed to Checkout';
+                } else {
+                    titleEl.removeAttribute('data-checkout-mode');
+                    titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Shopping Cart';
+                }
+            }
+
+            const paymentSelect = document.getElementById('cart_payment_method');
+            const btnWeb = document.getElementById('btnCheckoutWeb');
+            const btnWa = document.getElementById('btnCheckoutWa');
+            const btnComplete = document.getElementById('btnCheckoutComplete');
+
+            if (!isBuyNowTrigger) {
+                if (paymentSelect && paymentSelect.value !== '') {
+                    btnWeb.style.display = 'none';
+                    btnWa.style.display = 'none';
+                    btnComplete.style.display = 'block';
+                    btnComplete.disabled = false;
+                    btnComplete.style.opacity = '1';
+                    btnComplete.style.cursor = 'pointer';
+                    if (titleEl) {
+                        titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Proceed to Checkout';
+                    }
+                } else {
+                    btnWeb.style.display = 'block';
+                    btnWa.style.display = 'block';
+                    btnComplete.style.display = 'none';
+                    if (titleEl) {
+                        titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Shopping Cart';
+                    }
+                }
+            }
+            
+            isBuyNowTrigger = false;
+        } else {
+            isBuyNowTrigger = false;
+        }
     }
 
     function addToCart(btn) {
+        const titleEl = document.getElementById('cartDrawerTitle');
+        const isDirectCheckout = titleEl && (titleEl.getAttribute('data-checkout-mode') === 'buy-now' || titleEl.textContent.includes('Proceed to Checkout'));
+
+        if (isDirectCheckout) {
+            cart = [];
+            saveCart();
+            isBuyNowTrigger = false;
+            if (titleEl) {
+                titleEl.removeAttribute('data-checkout-mode');
+                titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Shopping Cart';
+            }
+            document.getElementById('btnCheckoutWeb').style.display = 'block';
+            document.getElementById('btnCheckoutWa').style.display = 'block';
+            document.getElementById('btnCheckoutComplete').style.display = 'none';
+
+            const paymentSelect = document.getElementById('cart_payment_method');
+            if (paymentSelect) {
+                paymentSelect.value = '';
+            }
+            document.getElementById('payment_details_box').style.display = 'none';
+        }
+
         const id = parseInt(btn.getAttribute('data-id'));
         const name = btn.getAttribute('data-name');
         const price = parseFloat(btn.getAttribute('data-price'));
@@ -612,14 +728,21 @@
         const cartItemsContainer = document.getElementById('cartItemsContainer');
         const cartTotalsSection = document.getElementById('cartTotalsSection');
         const cartSubtotal = document.getElementById('cartSubtotal');
+        const backToTopBtn = document.getElementById('backToTopBtn');
 
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
         if (totalItems > 0) {
             cartFloatingBtn.style.display = 'flex';
             cartBadge.textContent = totalItems;
+            if (backToTopBtn) {
+                backToTopBtn.style.bottom = '165px';
+            }
         } else {
             cartFloatingBtn.style.display = 'none';
+            if (backToTopBtn) {
+                backToTopBtn.style.bottom = '95px';
+            }
         }
 
         if (cart.length === 0) {
@@ -673,10 +796,18 @@
         const name = document.getElementById('cart_name').value.trim();
         const phone = document.getElementById('cart_phone').value.trim();
         const email = document.getElementById('cart_email').value.trim();
+        const paymentSelect = document.getElementById('cart_payment_method');
+        const refNumber = document.getElementById('cart_reference_number').value.trim();
 
         if (!name || !phone) {
             alert('Please fill in your Name and Phone/WhatsApp number to complete the order.');
             document.getElementById('cart_name').focus();
+            return;
+        }
+
+        if (!paymentSelect.value) {
+            alert('Please select a Payment Method to complete the order.');
+            paymentSelect.focus();
             return;
         }
 
@@ -698,6 +829,20 @@
             text += `- Email: ${email}\n`;
         }
 
+        const selectedOption = paymentSelect.options[paymentSelect.selectedIndex];
+        const paymentMethodName = selectedOption.text;
+        const accountNameVal = selectedOption.getAttribute('data-account-name');
+        const accountVal = selectedOption.getAttribute('data-account');
+
+        text += `- Payment Method: ${paymentMethodName}\n`;
+        if (accountNameVal) {
+            text += `- Account Name: ${accountNameVal}\n`;
+        }
+        text += `- Account Number: ${accountVal}\n`;
+        if (refNumber) {
+            text += `- Ref Number: ${refNumber}\n`;
+        }
+
         const whatsappNumber = "{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}";
         const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
 
@@ -717,6 +862,15 @@
                 saveCart();
                 toggleCartDrawer();
                 form.reset();
+                document.getElementById('payment_details_box').style.display = 'none';
+                const titleEl = document.getElementById('cartDrawerTitle');
+                if (titleEl) {
+                    titleEl.removeAttribute('data-checkout-mode');
+                    titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Shopping Cart';
+                }
+                document.getElementById('btnCheckoutWeb').style.display = 'block';
+                document.getElementById('btnCheckoutWa').style.display = 'block';
+                document.getElementById('btnCheckoutComplete').style.display = 'none';
                 window.open(url, '_blank');
             })
             .catch(err => {
@@ -734,11 +888,17 @@
                 e.preventDefault();
 
                 const formData = new FormData(this);
-                const submitBtn = document.getElementById('btnCheckoutWeb');
+                const paymentSelect = document.getElementById('cart_payment_method');
+                let submitBtn = document.getElementById('btnCheckoutWeb');
+                if (paymentSelect && paymentSelect.value !== '') {
+                    submitBtn = document.getElementById('btnCheckoutComplete');
+                }
                 const originalText = submitBtn.innerHTML;
 
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing Order...';
+                submitBtn.innerHTML = submitBtn === document.getElementById('btnCheckoutComplete')
+                    ? '<i class="fas fa-spinner fa-spin"></i> Completing Payment...'
+                    : '<i class="fas fa-spinner fa-spin"></i> Placing Order...';
 
                 fetch(this.action, {
                         method: 'POST',
@@ -757,7 +917,20 @@
                             saveCart();
                             toggleCartDrawer();
                             cartForm.reset();
-                            showToast('Order placed successfully! We will contact you soon.');
+                            document.getElementById('payment_details_box').style.display = 'none';
+                            const titleEl = document.getElementById('cartDrawerTitle');
+                            if (titleEl) {
+                                titleEl.removeAttribute('data-checkout-mode');
+                                titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Shopping Cart';
+                            }
+                            document.getElementById('btnCheckoutWeb').style.display = 'block';
+                            document.getElementById('btnCheckoutWa').style.display = 'block';
+                            document.getElementById('btnCheckoutComplete').style.display = 'none';
+                            if (submitBtn === document.getElementById('btnCheckoutComplete')) {
+                                showToast('Payment submitted successfully! We will verify and process your order shortly.');
+                            } else {
+                                showToast('Order placed successfully! We will contact you soon.');
+                            }
                         } else {
                             alert(data.message || 'Something went wrong. Please try again.');
                         }
@@ -887,6 +1060,128 @@
             btn.innerHTML = 'View Less <i class="fas fa-chevron-up" style="margin-left: 8px;"></i>';
         }
     }
+
+    function buyNow(btn) {
+        cart = [];
+        saveCart();
+        addToCart(btn);
+
+        isBuyNowTrigger = true;
+
+        const titleEl = document.getElementById('cartDrawerTitle');
+        if (titleEl) {
+            titleEl.setAttribute('data-checkout-mode', 'buy-now');
+            titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Proceed to Checkout';
+        }
+
+        document.getElementById('btnCheckoutWeb').style.display = 'none';
+        document.getElementById('btnCheckoutWa').style.display = 'none';
+
+        const btnComplete = document.getElementById('btnCheckoutComplete');
+        btnComplete.style.display = 'block';
+        btnComplete.disabled = true;
+        btnComplete.style.opacity = '0.6';
+        btnComplete.style.cursor = 'not-allowed';
+
+        const paymentSelect = document.getElementById('cart_payment_method');
+        if (paymentSelect) {
+            paymentSelect.value = '';
+        }
+        document.getElementById('payment_details_box').style.display = 'none';
+
+        const drawer = document.getElementById('cartDrawer');
+        const overlay = document.getElementById('cartOverlay');
+        if (!drawer.classList.contains('active')) {
+            drawer.classList.add('active');
+            overlay.classList.add('active');
+        }
+    }
+
+    function selectPaymentMethod(select) {
+        const box = document.getElementById('payment_details_box');
+        const logo = document.getElementById('payment_method_logo');
+        const name = document.getElementById('payment_method_name');
+        const account = document.getElementById('payment_method_account');
+        const accountName = document.getElementById('payment_method_account_name');
+
+        const btnWeb = document.getElementById('btnCheckoutWeb');
+        const btnWa = document.getElementById('btnCheckoutWa');
+        const btnComplete = document.getElementById('btnCheckoutComplete');
+
+        const titleEl = document.getElementById('cartDrawerTitle');
+        const isDirectCheckout = titleEl && titleEl.getAttribute('data-checkout-mode') === 'buy-now';
+
+        if (select.value === '') {
+            box.style.display = 'none';
+            if (isDirectCheckout) {
+                if (titleEl) {
+                    titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Proceed to Checkout';
+                }
+                btnWeb.style.display = 'none';
+                btnWa.style.display = 'none';
+                btnComplete.style.display = 'block';
+                btnComplete.disabled = true;
+                btnComplete.style.opacity = '0.6';
+                btnComplete.style.cursor = 'not-allowed';
+            } else {
+                if (titleEl) {
+                    titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Shopping Cart';
+                }
+                btnWeb.style.display = 'block';
+                btnWa.style.display = 'block';
+                btnComplete.style.display = 'none';
+            }
+            return;
+        }
+
+        const selectedOption = select.options[select.selectedIndex];
+        const accountVal = selectedOption.getAttribute('data-account');
+        const accountNameVal = selectedOption.getAttribute('data-account-name');
+        const logoVal = selectedOption.getAttribute('data-logo');
+
+        name.textContent = selectedOption.text;
+        account.textContent = accountVal;
+        accountName.textContent = accountNameVal || 'N/A';
+
+        if (logoVal) {
+            logo.src = logoVal;
+            logo.style.display = 'block';
+        } else {
+            logo.style.display = 'none';
+        }
+
+        box.style.display = 'block';
+
+        if (titleEl) {
+            titleEl.innerHTML = '<i class="fas fa-shopping-cart"></i> Proceed to Checkout';
+        }
+
+        btnWeb.style.display = 'none';
+        btnWa.style.display = 'none';
+        btnComplete.style.display = 'block';
+        btnComplete.disabled = false;
+        btnComplete.style.opacity = '1';
+        btnComplete.style.cursor = 'pointer';
+    }
+
+    function copyAccountNumber() {
+        const accountText = document.getElementById('payment_method_account').textContent;
+        if (!accountText) return;
+
+        navigator.clipboard.writeText(accountText).then(() => {
+            showToast('Account/Lipa code copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            // Fallback copy method
+            const tempInput = document.createElement('input');
+            tempInput.value = accountText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('Account/Lipa code copied to clipboard!');
+        });
+    }
 </script>
 
 @if(count($sliders) > 1)
@@ -945,6 +1240,16 @@
 
 @section('styles')
 <style>
+    .buy-now-btn {
+        background: #28a745 !important;
+        color: white !important;
+        transition: 0.2s ease-in-out !important;
+    }
+
+    .buy-now-btn:hover {
+        background: #218838 !important;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2) !important;
+    }
     /* Products view more hidden cards */
     .product-grid .card.hidden-product {
         display: none;
@@ -1002,6 +1307,10 @@
         .contact-bottom-row {
             grid-template-columns: 1fr !important;
             gap: 30px !important;
+            width: calc(100% - 30px) !important;
+            margin-left: 15px !important;
+            margin-right: 15px !important;
+            box-sizing: border-box !important;
         }
     }
 

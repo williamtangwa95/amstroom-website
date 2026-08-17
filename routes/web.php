@@ -71,6 +71,14 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/settings', [AdminController::class, 'editSettings'])->name('settings.edit');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
 
+    // Payment Methods CRUD
+    Route::get('/payment-methods', [AdminController::class, 'indexPaymentMethods'])->name('payment-methods.index');
+    Route::get('/payment-methods/create', [AdminController::class, 'createPaymentMethod'])->name('payment-methods.create');
+    Route::post('/payment-methods/create', [AdminController::class, 'storePaymentMethod'])->name('payment-methods.store');
+    Route::get('/payment-methods/{paymentMethod}/edit', [AdminController::class, 'editPaymentMethod'])->name('payment-methods.edit');
+    Route::post('/payment-methods/{paymentMethod}/edit', [AdminController::class, 'updatePaymentMethod'])->name('payment-methods.update');
+    Route::post('/payment-methods/{paymentMethod}/delete', [AdminController::class, 'deletePaymentMethod'])->name('payment-methods.delete');
+
     // Hero Slider CRUD
     Route::get('/sliders', [AdminController::class, 'indexSliders'])->name('sliders.index');
     Route::get('/sliders/create', [AdminController::class, 'createSlider'])->name('sliders.create');

@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- SEO Meta Tags -->
     <meta name="description" content="@yield('meta_description', 'Your trusted destination for quality laptops, desktop computers, accessories, Windows & software installation, security installations (CCTV, Electric Fence), computer repairs, and IT support in Morogoro, Tanzania.')">
-    <meta name="keywords" content="Amstroom Computers, laptops Morogoro, computer repair Morogoro, laptop store Tanzania, cheap laptops Tanzania, desktop computers Morogoro, software installation Morogoro, electric fence Morogoro, CCTV camera installation Morogoro, IT support Tanzania">
+    <meta name="keywords" content="Amstroom Computers, laptops Morogoro, computer repair Morogoro, laptop store Tanzania, cheap laptops Tanzania, desktop computers Morogoro,Laptop Morogoro software installation Morogoro, electric fence Morogoro, CCTV camera installation Morogoro, IT support Tanzania">
     <meta name="author" content="{{ setting('office_name', 'AMSTROOM COMPUTERS') }}">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ url()->current() }}">
@@ -75,13 +75,15 @@
         </nav>
     </header>
 
-    <main>
-        @yield('content')
-    </main>
+    <div class="content-wrapper">
+        <main>
+            @yield('content')
+        </main>
 
-    <footer>
-        <a href="{{ route('login') }}" style="color: inherit; text-decoration: none; cursor: default;">&copy;</a>&nbsp;{{ date('Y') }} AMSTROOM COMPUTERS | Technology Innovations | Fast & Reliable
-    </footer>
+        <footer>
+            <a href="{{ route('login') }}" style="color: inherit; text-decoration: none; cursor: default;">&copy;</a>&nbsp;{{ date('Y') }} AMSTROOM COMPUTERS | Technology Innovations | Fast & Reliable
+        </footer>
+    </div>
 
     <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', setting('contact_whatsapp', '255710635173')) }}" class="whatsapp" target="_blank">
         <i class="fab fa-whatsapp"></i>
@@ -96,6 +98,11 @@
         </div>
         @endif
     </div>
+
+    <!-- BACK TO TOP BUTTON -->
+    <button id="backToTopBtn" title="Go to top" style="position: fixed; bottom: 95px; right: 25px; z-index: 99; border: none; outline: none; background-color: var(--primary, #0B4FB5); color: white; cursor: pointer; padding: 12px; border-radius: 50%; font-size: 16px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: all 0.3s ease; opacity: 0; pointer-events: none; transform: translateY(10px);">
+        <i class="fas fa-chevron-up"></i>
+    </button>
 
     <script>
         // Auto-hide toast after 5 seconds
@@ -184,6 +191,65 @@
                     navToggle.classList.remove('active');
                     navMenu.classList.remove('active');
                 });
+            });
+        }
+
+        // Mobile Sticky Header and Top Bar collapse on scroll
+        const topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            const handleScroll = () => {
+                if (window.innerWidth <= 768) {
+                    if (window.scrollY > 20) {
+                        topBar.classList.add('hide-top-bar');
+                    } else {
+                        topBar.classList.remove('hide-top-bar');
+                    }
+                } else {
+                    topBar.classList.remove('hide-top-bar');
+                }
+            };
+
+            window.addEventListener('scroll', handleScroll);
+            handleScroll(); // Run initially
+        }
+
+        // Back to Top Button Logic
+        const backToTopBtn = document.getElementById('backToTopBtn');
+        if (backToTopBtn) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    backToTopBtn.style.opacity = '1';
+                    backToTopBtn.style.pointerEvents = 'auto';
+                    if (!backToTopBtn.matches(':hover')) {
+                        backToTopBtn.style.transform = 'translateY(0)';
+                    }
+                } else {
+                    backToTopBtn.style.opacity = '0';
+                    backToTopBtn.style.pointerEvents = 'none';
+                    backToTopBtn.style.transform = 'translateY(10px)';
+                }
+            });
+
+            backToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            backToTopBtn.addEventListener('mouseover', () => {
+                backToTopBtn.style.backgroundColor = 'var(--gold, #ffc107)';
+                backToTopBtn.style.color = 'black';
+                if (window.scrollY > 300) {
+                    backToTopBtn.style.transform = 'translateY(-4px) scale(1.05)';
+                }
+            });
+            backToTopBtn.addEventListener('mouseout', () => {
+                backToTopBtn.style.backgroundColor = 'var(--primary, #0B4FB5)';
+                backToTopBtn.style.color = 'white';
+                if (window.scrollY > 300) {
+                    backToTopBtn.style.transform = 'translateY(0) scale(1)';
+                }
             });
         }
     </script>

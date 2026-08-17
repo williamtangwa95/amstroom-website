@@ -16,8 +16,18 @@ class ProductRequest extends Model
         'request_type',
         'details',
         'total_price',
-        'status'
+        'status',
+        'payment_method_id',
+        'reference_number'
     ];
+
+    /**
+     * Relationship to payment method.
+     */
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class);
+    }
 
     /**
      * Decode JSON details if request type is 'cart'.

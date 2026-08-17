@@ -19,8 +19,9 @@ class HomeController extends Controller
         $services = \App\Models\Service::orderBy('sort_order')->get();
         $whyChooses = \App\Models\WhyChoose::orderBy('sort_order')->get();
         $stats = \App\Models\Stat::orderBy('sort_order')->get();
+        $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->get();
         
-        return view('home', compact('products', 'sliders', 'services', 'whyChooses', 'stats'));
+        return view('home', compact('products', 'sliders', 'services', 'whyChooses', 'stats', 'paymentMethods'));
     }
 
     /**
@@ -52,6 +53,8 @@ class HomeController extends Controller
             'request_type' => 'required|string|in:custom,cart',
             'details' => 'required|string',
             'total_price' => 'nullable|numeric|min:0',
+            'payment_method_id' => 'nullable|exists:payment_methods,id',
+            'reference_number' => 'nullable|string|max:255',
         ]);
 
         $validated['total_price'] = $validated['total_price'] ?? 0;

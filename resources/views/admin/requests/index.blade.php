@@ -38,7 +38,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($requests as $req)
+                    @foreach($requests as $req)
                     <tr style="border-bottom: 1px solid #eef2f6;">
                         <!-- Customer Details -->
                         <td style="padding: 12px; vertical-align: top;">
@@ -108,6 +108,38 @@
                             @else
                             <div style="font-size: 14px; line-height: 1.6; white-space: pre-line; color: #333; background: #fffbf0; border: 1px solid #ffeeba; border-radius: 8px; padding: 10px;">{!! e($req->details) !!}</div>
                             @endif
+
+                            @if($req->paymentMethod)
+                            <div style="margin-top: 10px; padding: 8px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 12.5px; color: #166534; display: flex; flex-direction: column; gap: 4px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    @if($req->paymentMethod->logo_path)
+                                        <img src="{{ asset($req->paymentMethod->logo_path) }}" alt="{{ $req->paymentMethod->name }}" style="height: 20px; width: 20px; object-fit: contain; border-radius: 3px; background: white; border: 1px solid #e2e8f0; padding: 1px;">
+                                    @else
+                                        <i class="fas fa-credit-card"></i>
+                                    @endif
+                                    <span>
+                                        <strong>Paid via:</strong> {{ $req->paymentMethod->name }}
+                                    </span>
+                                </div>
+                                @if($req->paymentMethod->account_name)
+                                <div style="font-size: 12px; color: #1e7e34; margin-left: 28px;">
+                                    <strong>Name:</strong> {{ $req->paymentMethod->account_name }}
+                                </div>
+                                @endif
+                                <div style="font-size: 12px; color: #1e7e34; margin-left: 28px;">
+                                    <strong>Number:</strong> {{ $req->paymentMethod->account_number }}
+                                </div>
+                            </div>
+                            @endif
+                            
+                            @if($req->reference_number)
+                            <div style="margin-top: 5px; padding: 8px 12px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; font-size: 12.5px; color: #0369a1; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-receipt"></i>
+                                <span>
+                                    <strong>Ref Number:</strong> <code style="font-family: monospace; font-size: 13px; font-weight: 700; background: #e0f2fe; padding: 2px 5px; border-radius: 4px;">{{ $req->reference_number }}</code>
+                                </span>
+                            </div>
+                            @endif
                         </td>
 
                         <!-- Total Price -->
@@ -129,6 +161,8 @@
                                 'in_progress' => ['bg' => '#17a2b8', 'text' => '#fff'],
                                 'completed' => ['bg' => '#28a745', 'text' => '#fff'],
                                 'cancelled' => ['bg' => '#dc3545', 'text' => '#fff'],
+                                'paid' => ['bg' => '#28a745', 'text' => '#fff'],
+                                'unpaid' => ['bg' => '#dc3545', 'text' => '#fff'],
                                 ];
                                 $currentStyle = $colorMap[$req->status] ?? ['bg' => '#6c757d', 'text' => '#fff'];
                                 @endphp
@@ -137,6 +171,8 @@
                                     <option value="in_progress" {{ $req->status === 'in_progress' ? 'selected' : '' }} style="background-color: #fff; color: #000;">In Progress</option>
                                     <option value="completed" {{ $req->status === 'completed' ? 'selected' : '' }} style="background-color: #fff; color: #000;">Completed</option>
                                     <option value="cancelled" {{ $req->status === 'cancelled' ? 'selected' : '' }} style="background-color: #fff; color: #000;">Cancelled</option>
+                                    <option value="paid" {{ $req->status === 'paid' ? 'selected' : '' }} style="background-color: #fff; color: #000;">Paid</option>
+                                    <option value="unpaid" {{ $req->status === 'unpaid' ? 'selected' : '' }} style="background-color: #fff; color: #000;">Unpaid</option>
                                 </select>
                             </form>
                         </td>
@@ -151,14 +187,7 @@
                             </form>
                         </td>
                     </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: #888; padding: 40px; font-size: 15px;">
-                            <i class="fas fa-box-open" style="font-size: 40px; margin-bottom: 12px; display: block; color: var(--primary);"></i>
-                            No requests or orders found.
-                        </td>
-                    </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>

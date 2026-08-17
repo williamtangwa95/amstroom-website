@@ -10,6 +10,7 @@ use App\Models\ProductRequest;
 use App\Models\Service;
 use App\Models\WhyChoose;
 use App\Models\Stat;
+use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -125,7 +126,7 @@ class AdminController extends Controller
     public function updateRequestStatus(Request $request, ProductRequest $productRequest)
     {
         $validated = $request->validate([
-            'status' => 'required|string|in:pending,in_progress,completed,cancelled',
+            'status' => 'required|string|in:pending,in_progress,completed,cancelled,paid,unpaid',
         ]);
 
         $productRequest->update($validated);
@@ -322,6 +323,23 @@ class AdminController extends Controller
         \Illuminate\Support\Facades\DB::transaction(function () use ($orders) {
             foreach ($orders as $id => $order) {
                 Product::where('id', $id)->update(['sort_order' => intval($order)]);
+            }
+
+            // Get selected IDs
+            $selectedIds = array_keys($orders);
+
+            // Get unselected products ordered by current sort_order and id
+            $unselectedProducts = Product::whereNotIn('id', $selectedIds)
+                ->orderBy('sort_order', 'asc')
+                ->orderBy('id', 'asc')
+                ->select('id')
+                ->get();
+
+            // Sequentially update unselected products starting from count($orders) + 1
+            $nextOrder = count($orders) + 1;
+            foreach ($unselectedProducts as $product) {
+                Product::where('id', $product->id)->update(['sort_order' => $nextOrder]);
+                $nextOrder++;
             }
         });
 
@@ -1194,5 +1212,95 @@ class AdminController extends Controller
     {
         $stat->delete();
         return redirect()->route('admin.homepage.index')->with('success', 'Stat deleted successfully!');
+    }
+
+    // ==========================================
+    // PAYMENT METHODS CRUD
+    // ==========================================
+
+    public function indexPaymentMethods()
+    {
+        $paymentMethods = PaymentMethod::all();
+        return view('admin.payment-methods.index', compact('paymentMethods'));
+    }
+
+    public function createPaymentMethod()
+    {
+        return view('admin.payment-methods.create');
+    }
+
+    public function storePaymentMethod(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'account_number' => 'required|string|max:255',
+            'account_name' => 'required|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $logoPath = null;
+        if ($request->hasFile('logo')) {
+            $imageName = time() . '_' . uniqid() . '.' . $request->logo->extension();
+            $request->logo->move(public_path('uploads/payment_logos'), $imageName);
+            $logoPath = 'uploads/payment_logos/' . $imageName;
+        }
+
+        PaymentMethod::create([
+            'name' => $validated['name'],
+            'account_number' => $validated['account_number'],
+            'account_name' => $validated['account_name'],
+            'logo_path' => $logoPath,
+            'is_active' => $request->has('is_active') ? (bool)$request->input('is_active') : true,
+        ]);
+
+        return redirect()->route('admin.payment-methods.index')->with('success', 'Payment Method created successfully!');
+    }
+
+    public function editPaymentMethod(PaymentMethod $paymentMethod)
+    {
+        return view('admin.payment-methods.edit', compact('paymentMethod'));
+    }
+
+    public function updatePaymentMethod(Request $request, PaymentMethod $paymentMethod)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'account_number' => 'required|string|max:255',
+            'account_name' => 'required|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $logoPath = $paymentMethod->logo_path;
+        if ($request->hasFile('logo')) {
+            // Delete old file if exists
+            if ($logoPath && file_exists(public_path($logoPath))) {
+                @unlink(public_path($logoPath));
+            }
+            $imageName = time() . '_' . uniqid() . '.' . $request->logo->extension();
+            $request->logo->move(public_path('uploads/payment_logos'), $imageName);
+            $logoPath = 'uploads/payment_logos/' . $imageName;
+        }
+
+        $paymentMethod->update([
+            'name' => $validated['name'],
+            'account_number' => $validated['account_number'],
+            'account_name' => $validated['account_name'],
+            'logo_path' => $logoPath,
+            'is_active' => $request->has('is_active') ? (bool)$request->input('is_active') : true,
+        ]);
+
+        return redirect()->route('admin.payment-methods.index')->with('success', 'Payment Method updated successfully!');
+    }
+
+    public function deletePaymentMethod(PaymentMethod $paymentMethod)
+    {
+        if ($paymentMethod->logo_path && file_exists(public_path($paymentMethod->logo_path))) {
+            @unlink(public_path($paymentMethod->logo_path));
+        }
+        $paymentMethod->delete();
+
+        return redirect()->route('admin.payment-methods.index')->with('success', 'Payment Method deleted successfully!');
     }
 }
