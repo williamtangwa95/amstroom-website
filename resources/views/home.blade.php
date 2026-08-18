@@ -133,7 +133,7 @@
 
                     $formatLines = function($linesArray) {
                         $formatted = array_map(function($line) {
-                            return '<span style="color: #00bcd4; font-weight: bold; margin-right: 6px;">•</span>' . e(trim($line));
+                            return '<span style="color: #00bcd4; font-weight: bold; margin-right: 6px;">✓</span>' . e(trim($line));
                         }, $linesArray);
                         return implode('<br>', $formatted);
                     };
