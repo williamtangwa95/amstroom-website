@@ -108,7 +108,25 @@
                 </div>
 
                 <h3>{{ $product->name }}</h3>
-                <p>{!! nl2br(e($product->description)) !!}</p>
+                @php
+                    $normalizedDescription = str_replace(["\r\n", "\r"], "\n", $product->description);
+                    $lines = explode("\n", $normalizedDescription);
+                    $hasMore = count($lines) > 6;
+                @endphp
+
+                @if($hasMore)
+                    @php
+                        $visibleLines = array_slice($lines, 0, 6);
+                        $hiddenLines = array_slice($lines, 6);
+                    @endphp
+                    <p class="description-container" style="line-height: 1.6; margin-bottom: 10px;">
+                        <span class="visible-desc">{!! nl2br(e(implode("\n", $visibleLines))) !!}</span><span class="desc-dots">...</span><span class="hidden-desc" style="display: none;">{!! nl2br(e("\n" . implode("\n", $hiddenLines))) !!}</span>
+                        <br>
+                        <a href="javascript:void(0)" class="read-more-link" onclick="toggleReadMore(this)" style="color: var(--royal); font-weight: 600; font-size: 13px; text-decoration: none; display: inline-block; margin-top: 6px; transition: 0.2s;">Read More</a>
+                    </p>
+                @else
+                    <p style="line-height: 1.6; margin-bottom: 10px;">{!! nl2br(e($product->description)) !!}</p>
+                @endif
 
                 <div class="price">
                     @if($product->is_from_price)
@@ -1216,6 +1234,26 @@
                 modal.style.display = 'none';
             }, 250);
             document.body.style.overflow = '';
+        }
+    }
+
+    function toggleReadMore(link) {
+        const container = link.closest('.description-container');
+        if (!container) return;
+        
+        const hiddenDesc = container.querySelector('.hidden-desc');
+        const dots = container.querySelector('.desc-dots');
+        
+        if (hiddenDesc && dots) {
+            if (hiddenDesc.style.display === 'none') {
+                hiddenDesc.style.display = 'inline';
+                dots.style.display = 'none';
+                link.textContent = 'Read Less';
+            } else {
+                hiddenDesc.style.display = 'none';
+                dots.style.display = 'inline';
+                link.textContent = 'Read More';
+            }
         }
     }
 
