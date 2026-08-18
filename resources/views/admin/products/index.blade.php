@@ -53,7 +53,12 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <img src="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}" alt="" class="product-img-th">
+                                        <div class="product-img-container" style="position: relative; width: 60px; height: 45px; border-radius: 6px; overflow: hidden; cursor: pointer; display: inline-block;" onclick="openZoomModal('{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}')">
+                                            <img src="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}" alt="" class="product-img-th" style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.2s ease-in-out;">
+                                            <div class="zoom-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease-in-out; border-radius: 6px;">
+                                                <i class="fas fa-search-plus" style="color: white; font-size: 14px;"></i>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td style="font-weight: 600; color: var(--dark);">{{ $product->name }}</td>
                                     <td>
@@ -113,6 +118,14 @@
             </form>
         </div>
     </div>
+
+    <!-- Zoom Lightbox Modal -->
+    <div id="zoomModal" class="zoom-modal">
+        <span class="zoom-close" onclick="closeZoomModal()">&times;</span>
+        <div style="max-width: 90%; max-height: 90%; display: flex; align-items: center; justify-content: center; position: relative;">
+            <img class="zoom-content" id="zoomImg" alt="Product Image Zoomed">
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -136,45 +149,102 @@
             0% { transform: scale(0.5); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        .product-img-container:hover .zoom-overlay {
+            opacity: 1 !important;
+        }
+        .product-img-container:hover .product-img-th {
+            transform: scale(1.1);
+        }
+        .zoom-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.25s ease-out;
+        }
+        .zoom-modal.active {
+            display: flex !important;
+            opacity: 1;
+        }
+        .zoom-close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            user-select: none;
+        }
+        .zoom-close:hover {
+            color: #cbd5e1 !important;
+        }
+        .zoom-content {
+            margin: auto;
+            display: block;
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            object-fit: contain;
+            animation-name: zoomIn;
+            animation-duration: 0.25s;
+        }
+        @keyframes zoomIn {
+            from {transform: scale(0.9); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
     </style>
     <script>
         $(document).ready(function() {
             const form = $('#reorder-form');
-            const toolbar = $('#reorder-toolbar');
-            const selectedCountSpan = $('#selected-count');
             
+            // Tracking checked items sequence list
             let selectedIds = [];
-            
-            // Delegate checkbox changes to support Datatables pagination
-            $('.datatable tbody').on('change', '.product-selector', function() {
+
+            // Listen to checkbox changes
+            $('.product-selector').on('change', function() {
                 const id = $(this).data('id');
-                const badge = $('#badge-' + id);
-                
-                if (this.checked) {
-                    selectedIds.push(id);
+                const isChecked = $(this).is(':checked');
+
+                if (isChecked) {
+                    if (selectedIds.indexOf(id) === -1) {
+                        selectedIds.push(id);
+                    }
                 } else {
                     selectedIds = selectedIds.filter(item => item !== id);
-                    badge.hide();
                 }
-                
+
                 updateOrderUI();
             });
-            
+
             function updateOrderUI() {
-                // Hide all badges first before redraw
+                // Hide all badges first
                 $('.order-badge').hide();
-                
+
+                // Show and set text of active sequence badges
                 selectedIds.forEach((id, index) => {
                     const badge = $('#badge-' + id);
-                    const sequenceNum = index + 1;
-                    
-                    badge.text(sequenceNum);
+                    badge.text(index + 1);
                     badge.css('display', 'inline-flex');
                 });
-                
+
+                // Display/Hide floating toolbar
+                const toolbar = $('#reorder-toolbar');
+                const selectedCount = $('#selected-count');
+
                 if (selectedIds.length > 0) {
-                    selectedCountSpan.text(selectedIds.length);
-                    toolbar.css('bottom', '30px');
+                    selectedCount.text(selectedIds.length);
+                    toolbar.css('bottom', '25px');
                 } else {
                     toolbar.css('bottom', '-100px');
                 }
@@ -226,6 +296,47 @@
                 // Submit natively
                 this.submit();
             });
+        });
+
+        function openZoomModal(imgSrc) {
+            const modal = document.getElementById('zoomModal');
+            const modalImg = document.getElementById('zoomImg');
+            if (modal && modalImg) {
+                modalImg.src = imgSrc;
+                modal.style.display = 'flex';
+                setTimeout(() => {
+                    modal.classList.add('active');
+                }, 10);
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeZoomModal() {
+            const modal = document.getElementById('zoomModal');
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 250);
+                document.body.style.overflow = '';
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeZoomModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('zoomModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal || e.target.classList.contains('zoom-close')) {
+                        closeZoomModal();
+                    }
+                });
+            }
         });
     </script>
 @endsection
