@@ -41,7 +41,7 @@
 
                 <div class="form-group">
                     <label for="price">Price (TZS) *</label>
-                    <input type="number" name="price" id="price" class="form-control" placeholder="e.g. 650000" value="{{ old('price', (int)$product->price) }}" required>
+                    <input type="text" name="price" id="price" class="form-control" placeholder="e.g. 650,000" value="{{ old('price', (int)$product->price) }}" required>
                 </div>
 
                 <div class="form-group checkbox-group">
@@ -145,5 +145,37 @@
             container.style.display = 'none';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const priceInput = document.getElementById('price');
+        if (priceInput) {
+            priceInput.addEventListener('input', function(e) {
+                // Record cursor position and length before change
+                const cursor = this.selectionStart;
+                const originalLen = this.value.length;
+                
+                // Remove everything except numbers
+                let value = this.value.replace(/[^0-9]/g, '');
+                
+                if (value) {
+                    this.value = parseInt(value, 10).toLocaleString('en-US');
+                    
+                    // Adjust cursor position
+                    const newLen = this.value.length;
+                    this.setSelectionRange(cursor + (newLen - originalLen), cursor + (newLen - originalLen));
+                } else {
+                    this.value = '';
+                }
+            });
+
+            // Format initial load value
+            if (priceInput.value) {
+                let cleanValue = priceInput.value.replace(/[^0-9]/g, '');
+                if (cleanValue) {
+                    priceInput.value = parseInt(cleanValue, 10).toLocaleString('en-US');
+                }
+            }
+        }
+    });
 </script>
 @endsection

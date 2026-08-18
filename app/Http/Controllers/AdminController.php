@@ -187,6 +187,10 @@ class AdminController extends Controller
      */
     public function storeProduct(Request $request)
     {
+        if ($request->has('price')) {
+            $request->merge(['price' => str_replace(',', '', $request->input('price'))]);
+        }
+
         $request->merge([
             'is_from_price' => $request->has('is_from_price'),
             'in_stock' => $request->has('in_stock'),
@@ -253,6 +257,10 @@ class AdminController extends Controller
      */
     public function updateProduct(Request $request, Product $product)
     {
+        if ($request->has('price')) {
+            $request->merge(['price' => str_replace(',', '', $request->input('price'))]);
+        }
+
         $request->merge([
             'is_from_price' => $request->has('is_from_price'),
             'in_stock' => $request->has('in_stock'),
