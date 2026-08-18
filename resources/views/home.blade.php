@@ -110,21 +110,43 @@
                 <h3>{{ $product->name }}</h3>
                 @php
                     $desc = $product->description;
-                    $hasMore = mb_strlen($desc) > 230;
+                    $normalized = str_replace(["\r\n", "\r"], "\n", $desc);
+                    $lines = array_filter(explode("\n", $normalized), function($line) {
+                        return trim($line) !== '';
+                    });
+
+                    $visibleLines = [];
+                    $hiddenLines = [];
+                    $currentLength = 0;
+
+                    foreach ($lines as $line) {
+                        $lineLength = mb_strlen($line);
+                        if ($currentLength + $lineLength <= 230 || empty($visibleLines)) {
+                            $visibleLines[] = $line;
+                            $currentLength += $lineLength + 1;
+                        } else {
+                            $hiddenLines[] = $line;
+                        }
+                    }
+
+                    $hasMore = !empty($hiddenLines);
+
+                    $formatLines = function($linesArray) {
+                        $formatted = array_map(function($line) {
+                            return '<span style="color: #00bcd4; font-weight: bold; margin-right: 6px;">•</span>' . e(trim($line));
+                        }, $linesArray);
+                        return implode('<br>', $formatted);
+                    };
                 @endphp
 
                 @if($hasMore)
-                    @php
-                        $visibleText = mb_substr($desc, 0, 230);
-                        $hiddenText = mb_substr($desc, 230);
-                    @endphp
                     <p class="description-container" style="line-height: 1.6; margin-bottom: 10px;">
-                        <span class="visible-desc">{!! nl2br(e($visibleText)) !!}</span><span class="desc-dots">...</span><span class="hidden-desc" style="display: none;">{!! nl2br(e($hiddenText)) !!}</span>
+                        <span class="visible-desc">{!! $formatLines($visibleLines) !!}</span><span class="desc-dots">...</span><span class="hidden-desc" style="display: none;"><br>{!! $formatLines($hiddenLines) !!}</span>
                         <br>
                         <a href="javascript:void(0)" class="read-more-link" onclick="toggleReadMore(this)" style="color: var(--royal); font-weight: 600; font-size: 13px; text-decoration: none; display: inline-block; margin-top: 6px; transition: 0.2s;">Read More</a>
                     </p>
                 @else
-                    <p style="line-height: 1.6; margin-bottom: 10px;">{!! nl2br(e($desc)) !!}</p>
+                    <p style="line-height: 1.6; margin-bottom: 10px;">{!! $formatLines($lines) !!}</p>
                 @endif
 
                 <div class="price">
