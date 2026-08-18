@@ -517,8 +517,8 @@
                         </div>
 
                         <div class="cart-form-group" style="margin-top: 15px;">
-                            <label for="cart_payment_method" style="font-weight: 600; display: block; margin-bottom: 6px; font-size: 13.5px;">Payment Method *</label>
-                            <select name="payment_method_id" id="cart_payment_method" class="cart-form-control" required onchange="selectPaymentMethod(this)" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; box-sizing: border-box; cursor: pointer;">
+                            <label for="cart_payment_method" style="font-weight: 600; display: block; margin-bottom: 6px; font-size: 13.5px;">Payment Method (Optional)</label>
+                            <select name="payment_method_id" id="cart_payment_method" class="cart-form-control" onchange="selectPaymentMethod(this)" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; box-sizing: border-box; cursor: pointer;">
                                 <option value="">-- Select Payment Method --</option>
                                 @foreach($paymentMethods as $method)
                                     <option value="{{ $method->id }}" data-account="{{ $method->account_number }}" data-account-name="{{ $method->account_name }}" data-logo="{{ $method->logo_path ? asset($method->logo_path) : '' }}">{{ $method->name }}</option>
@@ -805,12 +805,6 @@
             return;
         }
 
-        if (!paymentSelect.value) {
-            alert('Please select a Payment Method to complete the order.');
-            paymentSelect.focus();
-            return;
-        }
-
         let text = `Hello {{ setting('office_name', 'AMSTROOM COMPUTERS') }},\n\n`;
         text += `I would like to place an order for the following items:\n`;
 
@@ -829,16 +823,20 @@
             text += `- Email: ${email}\n`;
         }
 
-        const selectedOption = paymentSelect.options[paymentSelect.selectedIndex];
-        const paymentMethodName = selectedOption.text;
-        const accountNameVal = selectedOption.getAttribute('data-account-name');
-        const accountVal = selectedOption.getAttribute('data-account');
+        if (paymentSelect && paymentSelect.value) {
+            const selectedOption = paymentSelect.options[paymentSelect.selectedIndex];
+            const paymentMethodName = selectedOption.text;
+            const accountNameVal = selectedOption.getAttribute('data-account-name');
+            const accountVal = selectedOption.getAttribute('data-account');
 
-        text += `- Payment Method: ${paymentMethodName}\n`;
-        if (accountNameVal) {
-            text += `- Account Name: ${accountNameVal}\n`;
+            text += `- Payment Method: ${paymentMethodName}\n`;
+            if (accountNameVal) {
+                text += `- Account Name: ${accountNameVal}\n`;
+            }
+            if (accountVal) {
+                text += `- Account Number: ${accountVal}\n`;
+            }
         }
-        text += `- Account Number: ${accountVal}\n`;
         if (refNumber) {
             text += `- Ref Number: ${refNumber}\n`;
         }
