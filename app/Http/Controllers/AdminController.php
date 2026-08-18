@@ -228,7 +228,7 @@ class AdminController extends Controller
         } elseif ($request->filled('image_url')) {
             $validated['image_url'] = $request->input('image_url');
         } else {
-            return back()->withErrors(['image_file' => 'You must upload an image file or provide a valid image URL.'])->withInput();
+            $validated['image_url'] = null;
         }
 
         // Remove temp validation field
@@ -281,7 +281,7 @@ class AdminController extends Controller
 
         if ($request->hasFile('image_file')) {
             // Delete old file if it was a local upload
-            if (str_starts_with($product->image_url, '/uploads/') && file_exists(public_path($product->image_url))) {
+            if ($product->image_url && str_starts_with($product->image_url, '/uploads/') && file_exists(public_path($product->image_url))) {
                 @unlink(public_path($product->image_url));
             }
 
@@ -295,14 +295,21 @@ class AdminController extends Controller
 
             $file->move($uploadPath, $filename);
             $validated['image_url'] = '/uploads/products/' . $filename;
-        } elseif ($request->filled('image_url')) {
-            // Delete old file if switching to external URL
-            if (str_starts_with($product->image_url, '/uploads/') && file_exists(public_path($product->image_url))) {
-                @unlink(public_path($product->image_url));
-            }
-            $validated['image_url'] = $request->input('image_url');
         } else {
-            $validated['image_url'] = $product->image_url;
+            if ($request->filled('image_url')) {
+                // If they changed the URL or kept it
+                $newUrl = $request->input('image_url');
+                if ($product->image_url && $product->image_url !== $newUrl && str_starts_with($product->image_url, '/uploads/') && file_exists(public_path($product->image_url))) {
+                    @unlink(public_path($product->image_url));
+                }
+                $validated['image_url'] = $newUrl;
+            } else {
+                // Image URL was cleared
+                if ($product->image_url && str_starts_with($product->image_url, '/uploads/') && file_exists(public_path($product->image_url))) {
+                    @unlink(public_path($product->image_url));
+                }
+                $validated['image_url'] = null;
+            }
         }
 
         unset($validated['image_file']);

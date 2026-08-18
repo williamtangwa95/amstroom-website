@@ -65,16 +65,28 @@
                 <div class="form-group">
                     <label>Current Product Image</label>
                     <div style="margin-bottom: 15px;">
-                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" style="max-width: 200px; height: auto; border-radius: 8px; border: 1px solid #ddd; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                        @if($product->image_url)
+                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" style="max-width: 200px; height: auto; border-radius: 8px; border: 1px solid #ddd; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                        @else
+                            <span style="color: #888; font-style: italic; font-size: 13.5px;">No image uploaded yet</span>
+                        @endif
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="image_file">Upload New Product Image</label>
-                    <input type="file" name="image_file" id="image_file" class="form-control" accept="image/*" style="padding: 8px 12px;">
+                    <input type="file" name="image_file" id="image_file" class="form-control" accept="image/*" style="padding: 8px 12px;" onchange="previewImage(this)">
                     <small style="color: #777; font-size: 12px; margin-top: 5px; display: block;">
                         Choose an image file from your computer (JPEG, PNG, JPG, GIF, WEBP - max 2MB). Leave empty to keep current image.
                     </small>
+
+                    <!-- Preview Container -->
+                    <div id="image-preview-container" style="display: none; margin-top: 15px; padding: 15px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; text-align: center;">
+                        <p style="font-size: 12.5px; color: #475569; margin-bottom: 10px; font-weight: 600;">
+                            Selected Image Preview (<span id="image-size-badge" style="color: var(--primary); font-weight: 700;"></span>)
+                        </p>
+                        <img id="image-preview-element" src="#" alt="Selected Image Preview" style="max-height: 180px; max-width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; object-fit: contain; background: white; padding: 2px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                    </div>
                 </div>
 
                 <div style="text-align: center; margin: 15px 0; color: #888; font-weight: 500; font-size: 13px;">— OR —</div>
@@ -83,7 +95,7 @@
                     <label for="image_url">Product Image URL</label>
                     <input type="url" name="image_url" id="image_url" class="form-control" placeholder="https://images.unsplash.com/photo-..." value="{{ old('image_url', $product->image_url) }}">
                     <small style="color: #777; font-size: 12px; margin-top: 5px; display: block;">
-                        Alternatively, update the absolute link to the image.
+                        Alternatively, update the absolute link to the image. Clear this field to remove the image entirely.
                     </small>
                 </div>
 
@@ -100,4 +112,38 @@
             </form>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    function previewImage(input) {
+        const container = document.getElementById('image-preview-container');
+        const preview = document.getElementById('image-preview-element');
+        const sizeBadge = document.getElementById('image-size-badge');
+        
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            // Calculate size in human-readable format
+            let sizeText = '';
+            if (file.size > 1024 * 1024) {
+                sizeText = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            } else {
+                sizeText = (file.size / 1024).toFixed(2) + ' KB';
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                sizeBadge.textContent = sizeText;
+                container.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = '#';
+            sizeBadge.textContent = '';
+            container.style.display = 'none';
+        }
+    }
+</script>
 @endsection

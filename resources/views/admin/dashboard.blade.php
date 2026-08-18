@@ -212,7 +212,7 @@
                         @forelse($recentProducts as $prod)
                             <tr style="border-bottom: 1px solid #eef2f6;">
                                 <td style="padding: 8px 12px;">
-                                    <img src="{{ $prod->image_url }}" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
+                                    <img src="{{ $prod->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
                                 </td>
                                 <td style="padding: 12px; font-weight: 600; color: var(--dark);">{{ $prod->name }}</td>
                                 <td style="padding: 12px; font-weight: 700; color: var(--royal);">

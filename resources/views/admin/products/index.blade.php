@@ -53,7 +53,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <img src="{{ $product->image_url }}" alt="" class="product-img-th">
+                                        <img src="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}" alt="" class="product-img-th">
                                     </td>
                                     <td style="font-weight: 600; color: var(--dark);">{{ $product->name }}</td>
                                     <td>
