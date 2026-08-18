@@ -80,12 +80,18 @@
     <div class="product-grid">
         @forelse($products as $product)
         <div class="card {{ $loop->index >= 8 ? 'hidden-product' : '' }}">
-            <div style="position: relative; overflow: hidden; width: 100%; height: 220px;">
+            <div class="product-card-img-container" style="position: relative; overflow: hidden; width: 100%; height: 220px; cursor: pointer;" onclick="openZoomModal('{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}')">
                 @if($product->image_url)
-                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
+                <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="product-card-img" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
                 @else
-                <img src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80" alt="{{ $product->name }}" style="width: 100%; height: 100%; object-fit: cover; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
+                <img src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80" alt="{{ $product->name }}" class="product-card-img" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; {{ !$product->in_stock ? 'filter: grayscale(1) opacity(0.6);' : '' }}">
                 @endif
+
+                <!-- Zoom Hover Overlay -->
+                <div class="product-zoom-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; z-index: 3;">
+                    <i class="fas fa-search-plus" style="color: white; font-size: 20px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);"></i>
+                </div>
+
                 @if(!$product->in_stock)
                 <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(9, 32, 58, 0.45); color: white; font-weight: 800; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; z-index: 2;">Out of Stock</div>
                 @endif
@@ -570,6 +576,14 @@
         </div>
     </div>
 </section>
+
+<!-- Zoom Lightbox Modal -->
+<div id="zoomModal" class="zoom-modal">
+    <span class="zoom-close" onclick="closeZoomModal()">&times;</span>
+    <div style="max-width: 90%; max-height: 90%; display: flex; align-items: center; justify-content: center; position: relative;">
+        <img class="zoom-content" id="zoomImg" alt="Product Image Zoomed">
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -1180,6 +1194,47 @@
             showToast('Account/Lipa code copied to clipboard!');
         });
     }
+
+    function openZoomModal(imgSrc) {
+        const modal = document.getElementById('zoomModal');
+        const modalImg = document.getElementById('zoomImg');
+        if (modal && modalImg) {
+            modalImg.src = imgSrc;
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeZoomModal() {
+        const modal = document.getElementById('zoomModal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 250);
+            document.body.style.overflow = '';
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeZoomModal();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('zoomModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal || e.target.classList.contains('zoom-close')) {
+                    closeZoomModal();
+                }
+            });
+        }
+    });
 </script>
 
 @if(count($sliders) > 1)
@@ -1238,6 +1293,61 @@
 
 @section('styles')
 <style>
+    .product-card-img-container:hover .product-zoom-overlay {
+        opacity: 1 !important;
+    }
+    .product-card-img-container:hover .product-card-img {
+        transform: scale(1.1);
+    }
+    .zoom-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.25s ease-out;
+    }
+    .zoom-modal.active {
+        display: flex !important;
+        opacity: 1;
+    }
+    .zoom-close {
+        position: absolute;
+        top: 20px;
+        right: 35px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+        user-select: none;
+        z-index: 10000;
+    }
+    .zoom-close:hover {
+        color: #cbd5e1 !important;
+    }
+    .zoom-content {
+        margin: auto;
+        display: block;
+        max-width: 90%;
+        max-height: 90vh;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        object-fit: contain;
+        animation-name: zoomIn;
+        animation-duration: 0.25s;
+    }
+    @keyframes zoomIn {
+        from {transform: scale(0.9); opacity: 0;}
+        to {transform: scale(1); opacity: 1;}
+    }
+
     .buy-now-btn {
         background: #28a745 !important;
         color: white !important;
