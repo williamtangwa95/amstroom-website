@@ -204,7 +204,7 @@ class AdminController extends Controller
             'is_from_price' => 'boolean',
             'in_stock' => 'boolean',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'image_url' => 'nullable|url',
+            'image_url' => 'nullable|string|max:2048',
             'sort_order' => 'nullable|integer',
         ]);
 
@@ -274,7 +274,7 @@ class AdminController extends Controller
             'is_from_price' => 'boolean',
             'in_stock' => 'boolean',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'image_url' => 'nullable|url',
+            'image_url' => 'nullable|string|max:2048',
             'sort_order' => 'nullable|integer',
         ]);
 

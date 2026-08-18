@@ -82,7 +82,7 @@
 
                 <div class="form-group">
                     <label for="image_url">Product Image URL</label>
-                    <input type="url" name="image_url" id="image_url" class="form-control" placeholder="https://images.unsplash.com/photo-..." value="{{ old('image_url') }}">
+                    <input type="text" name="image_url" id="image_url" class="form-control" placeholder="https://images.unsplash.com/photo-..." value="{{ old('image_url') }}">
                     <small style="color: #777; font-size: 12px; margin-top: 5px; display: block;">
                         Alternatively, paste an absolute link to an image.
                     </small>

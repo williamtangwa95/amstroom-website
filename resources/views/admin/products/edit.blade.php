@@ -93,7 +93,7 @@
 
                 <div class="form-group">
                     <label for="image_url">Product Image URL</label>
-                    <input type="url" name="image_url" id="image_url" class="form-control" placeholder="https://images.unsplash.com/photo-..." value="{{ old('image_url', $product->image_url) }}">
+                    <input type="text" name="image_url" id="image_url" class="form-control" placeholder="https://images.unsplash.com/photo-..." value="{{ old('image_url', $product->image_url) }}">
                     <small style="color: #777; font-size: 12px; margin-top: 5px; display: block;">
                         Alternatively, update the absolute link to the image. Clear this field to remove the image entirely.
                     </small>
