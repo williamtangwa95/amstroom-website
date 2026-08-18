@@ -101,6 +101,15 @@ class AdminController extends Controller
     }
 
     /**
+     * Delete customer contact message / inquiry.
+     */
+    public function deleteInquiry(ContactMessage $contactMessage)
+    {
+        $contactMessage->delete();
+        return back()->with('success', 'Inquiry deleted successfully!');
+    }
+
+    /**
      * Display customer product requests and orders.
      */
     public function indexRequests(Request $request)

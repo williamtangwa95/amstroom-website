@@ -32,6 +32,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     // Inquiries Listing
     Route::get('/inquiries', [AdminController::class, 'indexInquiries'])->name('inquiries.index');
+    Route::post('/inquiries/{contactMessage}/delete', [AdminController::class, 'deleteInquiry'])->name('inquiries.delete');
 
     // Product Requests Listing & Management
     Route::get('/requests', [AdminController::class, 'indexRequests'])->name('requests.index');
