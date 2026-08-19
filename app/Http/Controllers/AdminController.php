@@ -713,10 +713,54 @@ class AdminController extends Controller
     /**
      * Display administrative activity logs.
      */
-    public function indexActivityLogs()
+    public function indexActivityLogs(Request $request)
     {
-        $logs = \App\Models\ActivityLog::with('user')->latest()->take(1000)->get();
-        return view('admin.logs.activity', compact('logs'));
+        $query = \App\Models\ActivityLog::with('user');
+        
+        // Filter by user
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+        
+        // Date range filtering
+        $startDate = null;
+        $endDate = null;
+        $filter = $request->input('filter', 'all');
+        
+        switch ($filter) {
+            case 'today':
+                $startDate = \Carbon\Carbon::today();
+                $endDate = \Carbon\Carbon::tomorrow()->subSecond();
+                break;
+            case 'this_month':
+                $startDate = \Carbon\Carbon::now()->startOfMonth();
+                $endDate = \Carbon\Carbon::now()->endOfMonth();
+                break;
+            case 'last_month':
+                $startDate = \Carbon\Carbon::now()->subMonth()->startOfMonth();
+                $endDate = \Carbon\Carbon::now()->subMonth()->endOfMonth();
+                break;
+            case 'this_year':
+                $startDate = \Carbon\Carbon::now()->startOfYear();
+                $endDate = \Carbon\Carbon::now()->endOfYear();
+                break;
+            case 'custom':
+                if ($request->filled('start_date') && $request->filled('end_date')) {
+                    $startDate = \Carbon\Carbon::parse($request->input('start_date'))->startOfDay();
+                    $endDate = \Carbon\Carbon::parse($request->input('end_date'))->endOfDay();
+                }
+                break;
+        }
+        
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        
+        $logs = $query->latest()->take(1000)->get();
+        $users = \App\Models\User::orderBy('name')->get();
+        $userId = $request->input('user_id', '');
+
+        return view('admin.logs.activity', compact('logs', 'users', 'filter', 'userId'));
     }
 
     /**
