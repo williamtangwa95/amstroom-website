@@ -37,6 +37,21 @@ body {
     font-weight: 500;
 }
 
+.top-bar-link {
+    transition: color 0.2s ease;
+}
+
+.top-bar-link:hover {
+    color: var(--gold) !important;
+    text-decoration: underline !important;
+}
+
+@media (max-width: 768px) {
+    .top-bar-separator {
+        display: none !important;
+    }
+}
+
 /* HEADER */
 
 header {

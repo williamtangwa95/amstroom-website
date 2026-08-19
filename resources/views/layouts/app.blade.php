@@ -38,12 +38,42 @@
 
 <body>
 
+    @php
+    $contactAddress = str_replace(["\r\n", "\r", "\n"], ", ", setting('contact_address', 'Shop 101, 2H Plaza, Morogoro, Tanzania'));
+    $contactPhone = setting('contact_phone', '+255 710 635 173');
+    $phoneRaw = preg_replace('/[^0-9+]/', '', $contactPhone);
+    $contactWhatsapp = setting('contact_whatsapp', '+255 710 635 173');
+    $whatsappRaw = preg_replace('/[^0-9]/', '', $contactWhatsapp);
+    $contactEmail = setting('contact_email', 'info@amstroomcomputers.com');
+    $contactHours = str_replace(["\r\n", "\r", "\n"], " | ", setting('contact_hours', 'Monday - Saturday: 8:00 AM – 7:00 PM'));
+    @endphp
+
     <div class="top-bar" style="font-size: 13px; letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;"><i class="fas fa-truck-fast" style="color: var(--gold);"></i> Safe Delivery Available Across Tanzania</span>
-        <span style="color: rgba(255,255,255,0.3); margin: 0 5px; font-weight: 300;">|</span>
-        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;"><i class="fas fa-award" style="color: var(--gold);"></i> 30+ Days Warranty Included</span>
-        <span style="color: rgba(255,255,255,0.3); margin: 0 5px; font-weight: 300;">|</span>
-        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;"><i class="fas fa-circle-check" style="color: var(--gold);"></i> 100% Inspected &amp; Certified Ready</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;">
+            <i class="fas fa-map-marker-alt" style="color: var(--gold);"></i>
+            <span>Visit Our Store: <strong>{{ $contactAddress }}</strong></span>
+        </span>
+        <span class="top-bar-separator" style="color: rgba(255,255,255,0.3); margin: 0 5px; font-weight: 300;">|</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;">
+            <i class="fas fa-phone-alt" style="color: var(--gold);"></i>
+            <span>Call / WhatsApp:
+                <a href="tel:{{ $phoneRaw }}" class="top-bar-link" style="color: white; text-decoration: none; font-weight: 600;">{{ $contactPhone }}</a>
+                <span style="color: rgba(255,255,255,0.4); margin: 0 2px;">/</span>
+                <a href="https://wa.me/{{ $whatsappRaw }}" target="_blank" class="top-bar-link" style="color: white; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fab fa-whatsapp" style="color: #25D366; font-size: 14px;"></i> Chat
+                </a>
+            </span>
+        </span>
+        <span class="top-bar-separator" style="color: rgba(255,255,255,0.3); margin: 0 5px; font-weight: 300;">|</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;">
+            <i class="fas fa-envelope" style="color: var(--gold);"></i>
+            <span>Email: <a href="mailto:{{ $contactEmail }}" class="top-bar-link" style="color: white; text-decoration: none; font-weight: 600;">{{ $contactEmail }}</a></span>
+        </span>
+        <span class="top-bar-separator" style="color: rgba(255,255,255,0.3); margin: 0 5px; font-weight: 300;">|</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; margin: 0 10px;">
+            <i class="fas fa-clock" style="color: var(--gold);"></i>
+            <span>Business Hours: <strong>{{ $contactHours }}</strong></span>
+        </span>
     </div>
 
     <header>
