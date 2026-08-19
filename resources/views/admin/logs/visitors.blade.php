@@ -13,6 +13,29 @@
     <!-- Filters and Export Bar -->
     <div style="background: white; border-radius: 12px; padding: 15px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 20px;">
         <form method="GET" action="{{ route('admin.logs.visitors') }}" id="filter-form" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0;">
+            <!-- Location Filter -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="country" style="font-size: 13.5px; font-weight: 600; color: #475569;"><i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> Location:</label>
+                <select name="country" id="country" class="form-control" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 13.5px; cursor: pointer; outline: none; width: auto;">
+                    <option value="">All Locations</option>
+                    @foreach($countries as $country)
+                        <option value="{{ $country }}" {{ $countrySelected === $country ? 'selected' : '' }}>{{ $country }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- User Account Filter -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="user_id" style="font-size: 13.5px; font-weight: 600; color: #475569;"><i class="fas fa-user" style="color: var(--primary);"></i> User:</label>
+                <select name="user_id" id="user_id" class="form-control" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 13.5px; cursor: pointer; outline: none; width: auto;">
+                    <option value="">All Accounts</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}" {{ (string)$userSelected === (string)$user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Timeframe Filter -->
             <div style="display: flex; align-items: center; gap: 8px;">
                 <label for="filter" style="font-size: 13.5px; font-weight: 600; color: #475569;"><i class="fas fa-filter" style="color: var(--primary);"></i> Timeframe:</label>
                 <select name="filter" id="filter" class="form-control" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 13.5px; cursor: pointer; outline: none; width: auto;" onchange="toggleCustomDateInputs()">

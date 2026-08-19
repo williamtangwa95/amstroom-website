@@ -673,6 +673,16 @@ class AdminController extends Controller
             $query->whereBetween('created_at', [$startDate, $endDate]);
         }
         
+        // Country filter
+        if ($request->filled('country')) {
+            $query->where('country', $request->input('country'));
+        }
+        
+        // User account filter
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+        
         // Calculate today's visits separately (always for current calendar date)
         $todayVisits = \App\Models\VisitorLog::whereDate('created_at', \Carbon\Carbon::today())->count();
         
@@ -697,6 +707,18 @@ class AdminController extends Controller
             ->get();
 
         $logs = (clone $query)->with('user')->latest()->take(1000)->get();
+        
+        // Fetch values for the filter dropdowns
+        $countries = \App\Models\VisitorLog::whereNotNull('country')
+            ->where('country', '!=', '')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country');
+            
+        $users = \App\Models\User::orderBy('name')->get();
+        
+        $countrySelected = $request->input('country', '');
+        $userSelected = $request->input('user_id', '');
 
         return view('admin.logs.visitors', compact(
             'totalViews',
@@ -706,7 +728,11 @@ class AdminController extends Controller
             'deviceStats',
             'browserStats',
             'logs',
-            'filter'
+            'filter',
+            'countries',
+            'users',
+            'countrySelected',
+            'userSelected'
         ));
     }
 
