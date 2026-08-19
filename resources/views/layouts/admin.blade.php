@@ -253,8 +253,159 @@
                     closeSidebar();
                 }
             });
+
+            // Global Image Zoom Lightbox handler with navigation & touch gestures
+            let zoomItems = [];
+            let currentZoomIndex = -1;
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            function openGlobalZoom(index) {
+                if (index < 0 || index >= zoomItems.length) return;
+                currentZoomIndex = index;
+                
+                const $item = $(zoomItems[currentZoomIndex]);
+                const imgSrc = $item.attr('data-zoom-src') || $item.find('img').attr('src');
+                const imgCaption = $item.attr('data-zoom-caption') || $item.find('img').attr('alt') || '';
+                
+                const $modal = $('#globalZoomModal');
+                const $modalImg = $('#globalZoomImg');
+                const $modalCaption = $('#globalZoomCaption');
+                
+                if ($modal.length && $modalImg.length) {
+                    if ($modal.hasClass('active')) {
+                        $modalImg.css('opacity', '0');
+                        setTimeout(() => {
+                            $modalImg.attr('src', imgSrc);
+                            if (imgCaption) {
+                                $modalCaption.text(imgCaption).show();
+                            } else {
+                                $modalCaption.hide();
+                            }
+                            $modalImg.css('opacity', '1');
+                        }, 150);
+                    } else {
+                        $modalImg.attr('src', imgSrc);
+                        if (imgCaption) {
+                            $modalCaption.text(imgCaption).show();
+                        } else {
+                            $modalCaption.hide();
+                        }
+                        $modal.show();
+                        setTimeout(() => {
+                            $modal.addClass('active');
+                        }, 10);
+                        $('body').css('overflow', 'hidden');
+                    }
+                    
+                    // Show/hide navigation arrows based on total items
+                    if (zoomItems.length > 1) {
+                        $('.global-zoom-nav').show();
+                    } else {
+                        $('.global-zoom-nav').hide();
+                    }
+                }
+            }
+
+            function closeGlobalZoom() {
+                const $modal = $('#globalZoomModal');
+                if ($modal.length) {
+                    $modal.removeClass('active');
+                    setTimeout(() => {
+                        $modal.hide();
+                        $('#globalZoomImg').attr('src', '');
+                    }, 300);
+                    $('body').css('overflow', '');
+                }
+            }
+
+            // Click delegator for all zoomable images
+            $(document).on('click', '.zoomable-image-container', function(e) {
+                if ($(e.target).closest('a, button, form, input').length) {
+                    return; // Don't trigger zoom if clicking interactive elements inside
+                }
+                e.preventDefault();
+                
+                // Get all visible zoomable image containers on the page
+                zoomItems = $('.zoomable-image-container:visible').toArray();
+                currentZoomIndex = zoomItems.indexOf(this);
+                
+                if (currentZoomIndex !== -1) {
+                    openGlobalZoom(currentZoomIndex);
+                }
+            });
+
+            // Close lightbox on clicking close button or backdrop background
+            $(document).on('click', '#globalZoomModal', function(e) {
+                if ($(e.target).is('#globalZoomModal') || $(e.target).hasClass('global-zoom-wrapper') || $(e.target).hasClass('global-zoom-close') || $(e.target).is('.global-zoom-close *')) {
+                    closeGlobalZoom();
+                }
+            });
+
+            // Previous image control
+            $(document).on('click', '.global-zoom-prev', function(e) {
+                e.stopPropagation();
+                if (zoomItems.length > 1) {
+                    let prevIndex = currentZoomIndex - 1;
+                    if (prevIndex < 0) prevIndex = zoomItems.length - 1;
+                    openGlobalZoom(prevIndex);
+                }
+            });
+
+            // Next image control
+            $(document).on('click', '.global-zoom-next', function(e) {
+                e.stopPropagation();
+                if (zoomItems.length > 1) {
+                    let nextIndex = currentZoomIndex + 1;
+                    if (nextIndex >= zoomItems.length) nextIndex = 0;
+                    openGlobalZoom(nextIndex);
+                }
+            });
+
+            // Keyboard navigation (Esc, Left, Right)
+            $(document).on('keydown', function(e) {
+                const $modal = $('#globalZoomModal');
+                if ($modal.is(':visible') && $modal.hasClass('active')) {
+                    if (e.key === 'Escape') {
+                        closeGlobalZoom();
+                    } else if (e.key === 'ArrowLeft') {
+                        $('.global-zoom-prev').trigger('click');
+                    } else if (e.key === 'ArrowRight') {
+                        $('.global-zoom-next').trigger('click');
+                    }
+                }
+            });
+
+            // Mobile touch gestures/swipes
+            $(document).on('touchstart', '#globalZoomModal', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+
+            $(document).on('touchend', '#globalZoomModal', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                const swipeThreshold = 50;
+                if (zoomItems.length > 1) {
+                    if (touchEndX < touchStartX - swipeThreshold) {
+                        $('.global-zoom-next').trigger('click'); // Swipe Left -> Next
+                    } else if (touchEndX > touchStartX + swipeThreshold) {
+                        $('.global-zoom-prev').trigger('click'); // Swipe Right -> Prev
+                    }
+                }
+            });
         });
     </script>
+
+    <!-- Global Premium Zoom Lightbox Modal -->
+    <div id="globalZoomModal" class="global-zoom-modal">
+        <span class="global-zoom-close"><i class="fas fa-times"></i></span>
+        <span class="global-zoom-nav global-zoom-prev"><i class="fas fa-chevron-left"></i></span>
+        <div class="global-zoom-wrapper">
+            <img class="global-zoom-content" id="globalZoomImg" alt="Zoomed Image">
+            <div class="global-zoom-caption" id="globalZoomCaption"></div>
+        </div>
+        <span class="global-zoom-nav global-zoom-next"><i class="fas fa-chevron-right"></i></span>
+    </div>
+
     @yield('scripts')
 </body>
 </html>

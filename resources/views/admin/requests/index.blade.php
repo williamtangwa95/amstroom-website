@@ -15,8 +15,61 @@
     </div>
 </div>
 
+<!-- Filters and Export Bar -->
+<div style="background: white; border-radius: 12px; padding: 15px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 20px;">
+    <form method="GET" action="{{ route('admin.requests.index') }}" id="filter-form" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0;">
+        @if(request('type'))
+            <input type="hidden" name="type" value="{{ request('type') }}">
+        @endif
+        
+        <!-- Status Filter -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="status" style="font-size: 13.5px; font-weight: 600; color: #475569;"><i class="fas fa-tasks" style="color: var(--primary);"></i> Status:</label>
+            <select name="status" id="status" class="form-control" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 13.5px; cursor: pointer; outline: none; width: auto;">
+                <option value="">All Statuses</option>
+                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+                <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid</option>
+                <option value="unpaid" {{ request('status') === 'unpaid' ? 'selected' : '' }}>Unpaid</option>
+            </select>
+        </div>
+
+        <!-- Timeframe Filter -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="filter" style="font-size: 13.5px; font-weight: 600; color: #475569;"><i class="fas fa-filter" style="color: var(--primary);"></i> Timeframe:</label>
+            <select name="filter" id="filter" class="form-control" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 13.5px; cursor: pointer; outline: none; width: auto;" onchange="toggleCustomDateInputs()">
+                <option value="all" {{ ($filter ?? 'all') === 'all' ? 'selected' : '' }}>All Time</option>
+                <option value="today" {{ ($filter ?? '') === 'today' ? 'selected' : '' }}>Today</option>
+                <option value="this_month" {{ ($filter ?? '') === 'this_month' ? 'selected' : '' }}>This Month</option>
+                <option value="last_month" {{ ($filter ?? '') === 'last_month' ? 'selected' : '' }}>Last Month</option>
+                <option value="this_year" {{ ($filter ?? '') === 'this_year' ? 'selected' : '' }}>This Year</option>
+                <option value="custom" {{ ($filter ?? '') === 'custom' ? 'selected' : '' }}>Custom Date Range</option>
+            </select>
+        </div>
+        
+        <div id="custom-date-inputs" style="display: {{ ($filter ?? '') === 'custom' ? 'flex' : 'none' }}; align-items: center; gap: 10px;">
+            <input type="date" name="start_date" id="start_date" class="form-control" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;" value="{{ request('start_date') }}">
+            <span style="color: #64748b; font-size: 13px;">to</span>
+            <input type="date" name="end_date" id="end_date" class="form-control" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;" value="{{ request('end_date') }}">
+        </div>
+        
+        <button type="submit" class="btn-action btn-primary" style="padding: 7px 15px; border-radius: 6px; font-size: 13px; font-weight: 600;"><i class="fas fa-sync-alt"></i> Apply Filter</button>
+    </form>
+    
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button type="button" id="export-excel-btn" class="btn-action" style="background: #217346; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13.5px; transition: all 0.2s;" onmouseover="this.style.background='#1a5c38'" onmouseout="this.style.background='#217346'">
+            <i class="fas fa-file-excel"></i> Export to Excel
+        </button>
+        <button type="button" id="export-pdf-btn" class="btn-action" style="background: #e11d48; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13.5px; transition: all 0.2s;" onmouseover="this.style.background='#be123c'" onmouseout="this.style.background='#e11d48'">
+            <i class="fas fa-file-pdf"></i> Download PDF
+        </button>
+    </div>
+</div>
+
 <!-- Product Requests Section -->
-<div class="dashboard-section" style="margin-top: 30px;">
+<div class="dashboard-section" style="margin-top: 25px;">
     <div class="dashboard-card">
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eef2f6; padding: 20px;">
             <h2>List of Requests ({{ count($requests) }})</h2>
@@ -193,4 +246,235 @@
         </div>
     </div>
 </div>
+
+@section('scripts')
+    <script>
+        function toggleCustomDateInputs() {
+            const filterVal = document.getElementById('filter').value;
+            const customDiv = document.getElementById('custom-date-inputs');
+            if (filterVal === 'custom') {
+                customDiv.style.display = 'flex';
+            } else {
+                customDiv.style.display = 'none';
+            }
+        }
+
+        $(document).ready(function() {
+            function escapeHtml(string) {
+                return String(string).replace(/[&<>"']/g, function (s) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;'
+                    }[s];
+                });
+            }
+
+            // Export to Excel
+            $(document).on('click', '#export-excel-btn', function(e) {
+                e.preventDefault();
+                let table = $('.datatable').DataTable();
+                let rowsData = table.rows({ search: 'applied' }).nodes().toArray();
+                
+                if (rowsData.length === 0) {
+                    alert('No requests available to export.');
+                    return;
+                }
+                
+                let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+                '<head>' +
+                    '<meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">' +
+                    '<style>' +
+                        'table { border-collapse: collapse; }' +
+                        'th { background-color: #217346; color: white; font-weight: bold; border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-family: sans-serif; }' +
+                        'td { border: 1px solid #cbd5e1; padding: 10px; vertical-align: middle; font-family: sans-serif; font-size: 13px; }' +
+                    '</style>' +
+                '</head>' +
+                '<body>' +
+                    '<table>' +
+                        '<thead>' +
+                            '<tr>' +
+                                '<th>Customer Name</th>' +
+                                '<th>Phone</th>' +
+                                '<th>Email</th>' +
+                                '<th>Request Date</th>' +
+                                '<th>Request Type</th>' +
+                                '<th style="width: 250px;">Items / Specifications</th>' +
+                                '<th>Total Price (TZS)</th>' +
+                                '<th>Status</th>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody>';
+
+                rowsData.forEach(function(row) {
+                    let $row = $(row);
+                    
+                    let name = $row.find('td:nth-child(1) div:first-child').text().trim();
+                    let phone = $row.find('td:nth-child(1) a[href^="tel:"]').text().trim();
+                    let email = $row.find('td:nth-child(1) a[href^="mailto:"]').text().trim() || 'N/A';
+                    let time = $row.find('td:nth-child(1) div:last-child').text().trim();
+                    let reqType = $row.find('td:nth-child(2)').text().trim();
+                    
+                    let $itemsTd = $row.find('td:nth-child(3)');
+                    let itemsDetail = '';
+                    if ($itemsTd.find('ul').length) {
+                        let items = [];
+                        $itemsTd.find('li').each(function() {
+                            items.push($(this).text().trim().replace(/\s+/g, ' '));
+                        });
+                        itemsDetail = items.join('<br>');
+                    } else {
+                        itemsDetail = $itemsTd.find('div:first-child').text().trim().replace(/\n/g, '<br>');
+                    }
+                    
+                    // Append payment details if present
+                    let paymentInfo = $itemsTd.find('div:contains("Paid via")').text().trim();
+                    if (paymentInfo) {
+                        itemsDetail += '<br><strong>Payment:</strong> ' + escapeHtml(paymentInfo.replace(/\s+/g, ' '));
+                    }
+                    let refInfo = $itemsTd.find('div:contains("Ref Number")').text().trim();
+                    if (refInfo) {
+                        itemsDetail += '<br><strong>Ref:</strong> ' + escapeHtml(refInfo.replace(/\s+/g, ' '));
+                    }
+                    
+                    let priceText = $row.find('td:nth-child(4)').text().trim();
+                    let cleanPrice = priceText.replace(/[^0-9]/g, '') || '0';
+                    let status = $row.find('td:nth-child(5) select').val() || $row.find('td:nth-child(5)').text().trim();
+
+                    html += '<tr>' +
+                        '<td>' + escapeHtml(name) + '</td>' +
+                        '<td>' + escapeHtml(phone) + '</td>' +
+                        '<td>' + escapeHtml(email) + '</td>' +
+                        '<td>' + escapeHtml(time) + '</td>' +
+                        '<td>' + escapeHtml(reqType) + '</td>' +
+                        '<td>' + itemsDetail + '</td>' +
+                        '<td style="mso-number-format:\\#\\,\\#\\#0;">' + cleanPrice + '</td>' +
+                        '<td>' + escapeHtml(status) + '</td>' +
+                    '</tr>';
+                });
+
+                html += '</tbody>' +
+                    '</table>' +
+                '</body>' +
+                '</html>';
+
+                let blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+                let link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'product_requests_export_' + new Date().toISOString().split('T')[0] + '.xls';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Export to PDF (Print-friendly format)
+            $(document).on('click', '#export-pdf-btn', function(e) {
+                e.preventDefault();
+                let table = $('.datatable').DataTable();
+                let rowsData = table.rows({ search: 'applied' }).nodes().toArray();
+                
+                if (rowsData.length === 0) {
+                    alert('No requests available to export.');
+                    return;
+                }
+                
+                let printWindow = window.open('', '_blank');
+                let html = '<html>' +
+                '<head>' +
+                    '<title>Product Requests & Orders Report</title>' +
+                    '<style>' +
+                        'body { font-family: system-ui, -apple-system, sans-serif; color: #333; margin: 30px; }' +
+                        'h1 { color: #0b4fb5; font-size: 24px; margin-bottom: 5px; }' +
+                        'p { color: #666; font-size: 14px; margin-top: 0; margin-bottom: 20px; }' +
+                        'table { width: 100%; border-collapse: collapse; margin-top: 15px; }' +
+                        'th { background-color: #f1f5f9; color: #1e293b; font-weight: 600; border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 12px; text-transform: uppercase; }' +
+                        'td { border: 1px solid #cbd5e1; padding: 10px; vertical-align: top; font-size: 12px; }' +
+                        '.status-badge { font-weight: bold; padding: 3px 8px; border-radius: 6px; font-size: 11px; display: inline-block; text-transform: capitalize; }' +
+                        '.status-pending { background: #fff3cd; color: #856404; }' +
+                        '.status-in_progress { background: #d1ecf1; color: #0c5460; }' +
+                        '.status-completed { background: #d4edda; color: #155724; }' +
+                        '.status-cancelled { background: #f8d7da; color: #721c24; }' +
+                        '.status-paid { background: #d4edda; color: #155724; }' +
+                        '.status-unpaid { background: #f8d7da; color: #721c24; }' +
+                        '@media print { body { margin: 15px; } button { display: none; } }' +
+                    '</style>' +
+                '</head>' +
+                '<body>' +
+                    '<h1>Product Requests & Orders Report</h1>' +
+                    '<p>Generated on: ' + new Date().toLocaleString() + '</p>' +
+                    '<table>' +
+                        '<thead>' +
+                            '<tr>' +
+                                '<th>Customer Details</th>' +
+                                '<th>Request Type</th>' +
+                                '<th>Items / Specifications</th>' +
+                                '<th>Total Price</th>' +
+                                '<th>Status</th>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody>';
+
+                rowsData.forEach(function(row) {
+                    let $row = $(row);
+                    
+                    let name = $row.find('td:nth-child(1) div:first-child').text().trim();
+                    let phone = $row.find('td:nth-child(1) a[href^="tel:"]').text().trim();
+                    let email = $row.find('td:nth-child(1) a[href^="mailto:"]').text().trim();
+                    let time = $row.find('td:nth-child(1) div:last-child').text().trim();
+                    let reqType = $row.find('td:nth-child(2)').text().trim();
+                    
+                    let $itemsTd = $row.find('td:nth-child(3)');
+                    let itemsDetail = '';
+                    if ($itemsTd.find('ul').length) {
+                        let items = [];
+                        $itemsTd.find('li').each(function() {
+                            items.push($(this).text().trim().replace(/\s+/g, ' '));
+                        });
+                        itemsDetail = items.join('<br>');
+                    } else {
+                        itemsDetail = $itemsTd.find('div:first-child').text().trim().replace(/\n/g, '<br>');
+                    }
+                    
+                    // Append payment details if present
+                    let paymentInfo = $itemsTd.find('div:contains("Paid via")').text().trim();
+                    if (paymentInfo) {
+                        itemsDetail += '<br><strong>Payment:</strong> ' + escapeHtml(paymentInfo.replace(/\s+/g, ' '));
+                    }
+                    let refInfo = $itemsTd.find('div:contains("Ref Number")').text().trim();
+                    if (refInfo) {
+                        itemsDetail += '<br><strong>Ref:</strong> ' + escapeHtml(refInfo.replace(/\s+/g, ' '));
+                    }
+                    
+                    let priceText = $row.find('td:nth-child(4)').text().trim();
+                    let status = $row.find('td:nth-child(5) select').val() || $row.find('td:nth-child(5)').text().trim();
+
+                    html += '<tr>' +
+                        '<td>' +
+                            '<strong>' + escapeHtml(name) + '</strong><br>' +
+                            'Phone: ' + escapeHtml(phone) + '<br>' +
+                            (email ? 'Email: ' + escapeHtml(email) + '<br>' : '') +
+                            '<span style="font-size:10px; color:#888;">' + escapeHtml(time) + '</span>' +
+                        '</td>' +
+                        '<td>' + escapeHtml(reqType) + '</td>' +
+                        '<td>' + itemsDetail + '</td>' +
+                        '<td><strong>' + escapeHtml(priceText) + '</strong></td>' +
+                        '<td><span class="status-badge status-' + status.toLowerCase().replace(' ', '_') + '">' + escapeHtml(status) + '</span></td>' +
+                    '</tr>';
+                });
+
+                html += '</tbody>' +
+                    '</table>' +
+                    '<script>window.onload = function() { window.print(); window.close(); };<\/script>' +
+                '</body>' +
+                '</html>';
+
+                printWindow.document.open();
+                printWindow.document.write(html);
+                printWindow.document.close();
+            });
+        });
+    </script>
+@endsection
 @endsection

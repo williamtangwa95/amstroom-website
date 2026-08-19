@@ -114,19 +114,55 @@ class AdminController extends Controller
      */
     public function indexRequests(Request $request)
     {
-        $query = ProductRequest::latest();
+        $query = ProductRequest::with('paymentMethod')->latest();
 
-        // Optional filtering by type or status
+        // Optional filtering by type
         if ($request->filled('type')) {
             $query->where('request_type', $request->input('type'));
         }
+        
+        // Status filter
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
 
+        // Date range filtering
+        $startDate = null;
+        $endDate = null;
+        $filter = $request->input('filter', 'all');
+        
+        switch ($filter) {
+            case 'today':
+                $startDate = \Carbon\Carbon::today();
+                $endDate = \Carbon\Carbon::tomorrow()->subSecond();
+                break;
+            case 'this_month':
+                $startDate = \Carbon\Carbon::now()->startOfMonth();
+                $endDate = \Carbon\Carbon::now()->endOfMonth();
+                break;
+            case 'last_month':
+                $startDate = \Carbon\Carbon::now()->subMonth()->startOfMonth();
+                $endDate = \Carbon\Carbon::now()->subMonth()->endOfMonth();
+                break;
+            case 'this_year':
+                $startDate = \Carbon\Carbon::now()->startOfYear();
+                $endDate = \Carbon\Carbon::now()->endOfYear();
+                break;
+            case 'custom':
+                if ($request->filled('start_date') && $request->filled('end_date')) {
+                    $startDate = \Carbon\Carbon::parse($request->input('start_date'))->startOfDay();
+                    $endDate = \Carbon\Carbon::parse($request->input('end_date'))->endOfDay();
+                }
+                break;
+        }
+        
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
         $requests = $query->get();
 
-        return view('admin.requests.index', compact('requests'));
+        return view('admin.requests.index', compact('requests', 'filter'));
     }
 
     /**
@@ -600,37 +636,77 @@ class AdminController extends Controller
     /**
      * Display website visitor logs and analytics.
      */
-    public function indexVisitorLogs()
+    public function indexVisitorLogs(Request $request)
     {
-        $totalViews = \App\Models\VisitorLog::count();
-        $uniqueVisitors = \App\Models\VisitorLog::distinct('ip_address')->count('ip_address');
+        $query = \App\Models\VisitorLog::query();
         
-        $topLocations = \App\Models\VisitorLog::select('country', 'city', \DB::raw('count(*) as count'))
+        $startDate = null;
+        $endDate = null;
+        $filter = $request->input('filter', 'all');
+        
+        switch ($filter) {
+            case 'today':
+                $startDate = \Carbon\Carbon::today();
+                $endDate = \Carbon\Carbon::tomorrow()->subSecond();
+                break;
+            case 'this_month':
+                $startDate = \Carbon\Carbon::now()->startOfMonth();
+                $endDate = \Carbon\Carbon::now()->endOfMonth();
+                break;
+            case 'last_month':
+                $startDate = \Carbon\Carbon::now()->subMonth()->startOfMonth();
+                $endDate = \Carbon\Carbon::now()->subMonth()->endOfMonth();
+                break;
+            case 'this_year':
+                $startDate = \Carbon\Carbon::now()->startOfYear();
+                $endDate = \Carbon\Carbon::now()->endOfYear();
+                break;
+            case 'custom':
+                if ($request->filled('start_date') && $request->filled('end_date')) {
+                    $startDate = \Carbon\Carbon::parse($request->input('start_date'))->startOfDay();
+                    $endDate = \Carbon\Carbon::parse($request->input('end_date'))->endOfDay();
+                }
+                break;
+        }
+        
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        
+        // Calculate today's visits separately (always for current calendar date)
+        $todayVisits = \App\Models\VisitorLog::whereDate('created_at', \Carbon\Carbon::today())->count();
+        
+        $totalViews = (clone $query)->count();
+        $uniqueVisitors = (clone $query)->distinct('ip_address')->count('ip_address');
+        
+        $topLocations = (clone $query)->select('country', 'city', \DB::raw('count(*) as count'))
             ->groupBy('country', 'city')
             ->orderByDesc('count')
             ->take(5)
             ->get();
             
-        $deviceStats = \App\Models\VisitorLog::select('device_type', \DB::raw('count(*) as count'))
+        $deviceStats = (clone $query)->select('device_type', \DB::raw('count(*) as count'))
             ->groupBy('device_type')
             ->orderByDesc('count')
             ->get();
 
-        $browserStats = \App\Models\VisitorLog::select('browser', \DB::raw('count(*) as count'))
+        $browserStats = (clone $query)->select('browser', \DB::raw('count(*) as count'))
             ->groupBy('browser')
             ->orderByDesc('count')
             ->take(5)
             ->get();
 
-        $logs = \App\Models\VisitorLog::with('user')->latest()->take(1000)->get();
+        $logs = (clone $query)->with('user')->latest()->take(1000)->get();
 
         return view('admin.logs.visitors', compact(
             'totalViews',
             'uniqueVisitors',
+            'todayVisits',
             'topLocations',
             'deviceStats',
             'browserStats',
-            'logs'
+            'logs',
+            'filter'
         ));
     }
 

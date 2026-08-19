@@ -10,8 +10,52 @@
         </div>
     </div>
 
+    <!-- Filters and Export Bar -->
+    <div style="background: white; border-radius: 12px; padding: 15px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-top: 20px;">
+        <form method="GET" action="{{ route('admin.logs.visitors') }}" id="filter-form" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="filter" style="font-size: 13.5px; font-weight: 600; color: #475569;"><i class="fas fa-filter" style="color: var(--primary);"></i> Timeframe:</label>
+                <select name="filter" id="filter" class="form-control" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; font-size: 13.5px; cursor: pointer; outline: none; width: auto;" onchange="toggleCustomDateInputs()">
+                    <option value="all" {{ $filter === 'all' ? 'selected' : '' }}>All Time</option>
+                    <option value="today" {{ $filter === 'today' ? 'selected' : '' }}>Today</option>
+                    <option value="this_month" {{ $filter === 'this_month' ? 'selected' : '' }}>This Month</option>
+                    <option value="last_month" {{ $filter === 'last_month' ? 'selected' : '' }}>Last Month</option>
+                    <option value="this_year" {{ $filter === 'this_year' ? 'selected' : '' }}>This Year</option>
+                    <option value="custom" {{ $filter === 'custom' ? 'selected' : '' }}>Custom Date Range</option>
+                </select>
+            </div>
+            
+            <div id="custom-date-inputs" style="display: {{ $filter === 'custom' ? 'flex' : 'none' }}; align-items: center; gap: 10px;">
+                <input type="date" name="start_date" id="start_date" class="form-control" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;" value="{{ request('start_date') }}">
+                <span style="color: #64748b; font-size: 13px;">to</span>
+                <input type="date" name="end_date" id="end_date" class="form-control" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;" value="{{ request('end_date') }}">
+            </div>
+            
+            <button type="submit" class="btn-action btn-primary" style="padding: 7px 15px; border-radius: 6px; font-size: 13px; font-weight: 600;"><i class="fas fa-sync-alt"></i> Apply Filter</button>
+        </form>
+        
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" id="export-excel-btn" class="btn-action" style="background: #217346; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13.5px; transition: all 0.2s;" onmouseover="this.style.background='#1a5c38'" onmouseout="this.style.background='#217346'">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </button>
+            <button type="button" id="export-pdf-btn" class="btn-action" style="background: #e11d48; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13.5px; transition: all 0.2s;" onmouseover="this.style.background='#be123c'" onmouseout="this.style.background='#e11d48'">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+        </div>
+    </div>
+
     <!-- Analytics Dashboard Cards -->
-    <div class="metrics-grid" style="margin-top: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+    <div class="metrics-grid" style="margin-top: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+        
+        <!-- Today's Visits Card -->
+        <div class="metric-card" style="background: white; border-top: 5px solid var(--gold); padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="color: #64748b; font-size: 14px; margin-bottom: 5px;">Today's Visits</h3>
+                <p style="font-size: 28px; font-weight: 700; margin: 0; color: var(--dark);">{{ number_format($todayVisits) }}</p>
+            </div>
+            <div style="font-size: 32px; color: var(--gold);"><i class="fas fa-calendar-day"></i></div>
+        </div>
+
         <div class="metric-card" style="background: white; border-top: 5px solid var(--primary); padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h3 style="color: #64748b; font-size: 14px; margin-bottom: 5px;">Total Page Views</h3>
@@ -225,4 +269,188 @@
             </table>
         </div>
     </div>
+
+    @section('scripts')
+        <script>
+            function toggleCustomDateInputs() {
+                const filterVal = document.getElementById('filter').value;
+                const customDiv = document.getElementById('custom-date-inputs');
+                if (filterVal === 'custom') {
+                    customDiv.style.display = 'flex';
+                } else {
+                    customDiv.style.display = 'none';
+                }
+            }
+
+            $(document).ready(function() {
+                // Helper to escape HTML to prevent XSS
+                function escapeHtml(string) {
+                    return String(string).replace(/[&<>"']/g, function (s) {
+                        return {
+                            '&': '&amp;',
+                            '<': '&lt;',
+                            '>': '&gt;',
+                            '"': '&quot;',
+                            "'": '&#39;'
+                        }[s];
+                    });
+                }
+
+                // Export logs to Excel
+                $(document).on('click', '#export-excel-btn', function(e) {
+                    e.preventDefault();
+                    let table = $('.datatable').DataTable();
+                    let rowsData = table.rows({ search: 'applied' }).nodes().toArray();
+                    
+                    if (rowsData.length === 0) {
+                        alert('No logs available to export.');
+                        return;
+                    }
+                    
+                    let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+                    '<head>' +
+                        '<meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">' +
+                        '<style>' +
+                            'table { border-collapse: collapse; }' +
+                            'th { background-color: #217346; color: white; font-weight: bold; border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-family: sans-serif; }' +
+                            'td { border: 1px solid #cbd5e1; padding: 10px; vertical-align: middle; font-family: sans-serif; font-size: 13px; }' +
+                        '</style>' +
+                    '</head>' +
+                    '<body>' +
+                        '<table>' +
+                            '<thead>' +
+                                '<tr>' +
+                                    '<th>Time</th>' +
+                                    '<th>IP Address</th>' +
+                                    '<th>Location</th>' +
+                                    '<th>Platform / OS</th>' +
+                                    '<th>Browser</th>' +
+                                    '<th>Method</th>' +
+                                    '<th>Request URL</th>' +
+                                    '<th>User Account</th>' +
+                                '</tr>' +
+                            '</thead>' +
+                            '<tbody>';
+
+                    rowsData.forEach(function(row) {
+                        let $row = $(row);
+                        let time = $row.find('td:nth-child(1)').contents().first().text().trim();
+                        let ip = $row.find('td:nth-child(2)').text().trim();
+                        let location = $row.find('td:nth-child(3)').text().trim();
+                        let platform = $row.find('td:nth-child(4) span:first-child').text().trim();
+                        let browser = $row.find('td:nth-child(4) span:last-child').text().trim();
+                        let method = $row.find('td:nth-child(5) span:first-child').text().trim();
+                        let url = $row.find('td:nth-child(5) span:last-child').text().trim();
+                        let user = $row.find('td:nth-child(6)').text().trim();
+
+                        html += '<tr>' +
+                            '<td>' + escapeHtml(time) + '</td>' +
+                            '<td>' + escapeHtml(ip) + '</td>' +
+                            '<td>' + escapeHtml(location) + '</td>' +
+                            '<td>' + escapeHtml(platform) + '</td>' +
+                            '<td>' + escapeHtml(browser) + '</td>' +
+                            '<td>' + escapeHtml(method) + '</td>' +
+                            '<td>' + escapeHtml(url) + '</td>' +
+                            '<td>' + escapeHtml(user) + '</td>' +
+                        '</tr>';
+                    });
+
+                    html += '</tbody>' +
+                        '</table>' +
+                    '</body>' +
+                    '</html>';
+
+                    let blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+                    let link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'visitor_analytics_export_' + new Date().toISOString().split('T')[0] + '.xls';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+
+                // Export logs to PDF (Print-friendly format)
+                $(document).on('click', '#export-pdf-btn', function(e) {
+                    e.preventDefault();
+                    let table = $('.datatable').DataTable();
+                    let rowsData = table.rows({ search: 'applied' }).nodes().toArray();
+                    
+                    if (rowsData.length === 0) {
+                        alert('No logs available to export.');
+                        return;
+                    }
+                    
+                    let printWindow = window.open('', '_blank');
+                    let html = '<html>' +
+                    '<head>' +
+                        '<title>Visitor Analytics Log Report</title>' +
+                        '<style>' +
+                            'body { font-family: system-ui, -apple-system, sans-serif; color: #333; margin: 30px; }' +
+                            'h1 { color: #0b4fb5; font-size: 24px; margin-bottom: 5px; }' +
+                            'p { color: #666; font-size: 14px; margin-top: 0; margin-bottom: 20px; }' +
+                            'table { width: 100%; border-collapse: collapse; margin-top: 15px; }' +
+                            'th { background-color: #f1f5f9; color: #1e293b; font-weight: 600; border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 12px; text-transform: uppercase; }' +
+                            'td { border: 1px solid #cbd5e1; padding: 10px; vertical-align: middle; font-size: 12px; }' +
+                            '.method { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 11px; display: inline-block; }' +
+                            '.method-get { background: #e0f2fe; color: #0369a1; }' +
+                            '.method-post { background: #dcfce7; color: #15803d; }' +
+                            '@media print { body { margin: 15px; } button { display: none; } }' +
+                        '</style>' +
+                    '</head>' +
+                    '<body>' +
+                        '<h1>Visitor Analytics Log Report</h1>' +
+                        '<p>Generated on: ' + new Date().toLocaleString() + '</p>' +
+                        '<table>' +
+                            '<thead>' +
+                                '<tr>' +
+                                    '<th>Time</th>' +
+                                    '<th>IP Address</th>' +
+                                    '<th>Location</th>' +
+                                    '<th>Device / OS</th>' +
+                                    '<th>Browser</th>' +
+                                    '<th>Method</th>' +
+                                    '<th>Request URL</th>' +
+                                    '<th>User Account</th>' +
+                                '</tr>' +
+                            '</thead>' +
+                            '<tbody>';
+
+                    rowsData.forEach(function(row) {
+                        let $row = $(row);
+                        let time = $row.find('td:nth-child(1)').contents().first().text().trim();
+                        let ip = $row.find('td:nth-child(2)').text().trim();
+                        let location = $row.find('td:nth-child(3)').text().trim();
+                        let platform = $row.find('td:nth-child(4) span:first-child').text().trim();
+                        let browser = $row.find('td:nth-child(4) span:last-child').text().trim();
+                        let method = $row.find('td:nth-child(5) span:first-child').text().trim();
+                        let url = $row.find('td:nth-child(5) span:last-child').text().trim();
+                        let user = $row.find('td:nth-child(6)').text().trim();
+
+                        let methodClass = method === 'POST' ? 'method-post' : 'method-get';
+
+                        html += '<tr>' +
+                            '<td>' + escapeHtml(time) + '</td>' +
+                            '<td>' + escapeHtml(ip) + '</td>' +
+                            '<td>' + escapeHtml(location) + '</td>' +
+                            '<td>' + escapeHtml(platform) + '</td>' +
+                            '<td>' + escapeHtml(browser) + '</td>' +
+                            '<td><span class="method ' + methodClass + '">' + escapeHtml(method) + '</span></td>' +
+                            '<td style="font-family: monospace;">' + escapeHtml(url) + '</td>' +
+                            '<td>' + escapeHtml(user) + '</td>' +
+                        '</tr>';
+                    });
+
+                    html += '</tbody>' +
+                        '</table>' +
+                        '<script>window.onload = function() { window.print(); window.close(); };<\/script>' +
+                    '</body>' +
+                    '</html>';
+
+                    printWindow.document.open();
+                    printWindow.document.write(html);
+                    printWindow.document.close();
+                });
+            });
+        </script>
+    @endsection
 @endsection

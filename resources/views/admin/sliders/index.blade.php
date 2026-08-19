@@ -28,7 +28,12 @@
                             </td>
                             <td>
                                 @if($slider->image_path)
-                                    <img src="{{ asset($slider->image_path) }}" alt="Slide Image" style="width: 80px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;">
+                                    <div class="zoomable-image-container" style="width: 80px; height: 50px;" data-zoom-caption="{{ $slider->title }}">
+                                        <img src="{{ asset($slider->image_path) }}" alt="{{ $slider->title }}">
+                                        <div class="zoom-overlay">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
                                 @else
                                     <div style="width: 80px; height: 50px; background: #e2e8f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #64748b; font-weight: 600;">Default</div>
                                 @endif

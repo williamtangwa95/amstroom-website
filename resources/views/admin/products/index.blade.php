@@ -8,7 +8,10 @@
             <h1>Product Catalog</h1>
             <p style="color: #666; font-size: 14px;">Manage items currently listed for sale in your storefront.</p>
         </div>
-        <div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <button type="button" id="export-excel-btn" class="btn-action" style="background: #217346; color: white; border: none; cursor: pointer; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; transition: all 0.2s;" onmouseover="this.style.background='#1a5c38'" onmouseout="this.style.background='#217346'">
+                <i class="fas fa-file-excel"></i> Export to Excel
+            </button>
             <a href="{{ route('admin.products.create') }}" class="btn-action btn-primary">
                 <i class="fas fa-plus"></i> Add Product
             </a>
@@ -53,10 +56,10 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="product-img-container" style="position: relative; width: 60px; height: 45px; border-radius: 6px; overflow: hidden; cursor: pointer; display: inline-block;" onclick="openZoomModal('{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}')">
-                                            <img src="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}" alt="" class="product-img-th" style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.2s ease-in-out;">
-                                            <div class="zoom-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease-in-out; border-radius: 6px;">
-                                                <i class="fas fa-search-plus" style="color: white; font-size: 14px;"></i>
+                                        <div class="zoomable-image-container" style="width: 60px; height: 45px;" data-zoom-caption="{{ $product->name }}">
+                                            <img src="{{ $product->image_url ?? 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80' }}" alt="{{ $product->name }}">
+                                            <div class="zoom-overlay">
+                                                <i class="fas fa-search-plus"></i>
                                             </div>
                                         </div>
                                     </td>
@@ -86,6 +89,9 @@
                                     </td>
                                     <td>
                                         <div style="display: flex; gap: 8px;">
+                                            <button type="button" class="btn-action btn-sm toggle-details" data-id="{{ $product->id }}" data-name="{{ $product->name }}" data-specs="{{ $product->description }}" style="display: inline-block; padding: 6px 12px; font-size: 13px; border-radius: 6px; border: none; background: rgba(11, 79, 181, 0.1); color: var(--primary); cursor: pointer; font-weight: 600;">
+                                                <i class="fas fa-chevron-down"></i> Details
+                                            </button>
                                             <a href="{{ route('admin.products.edit', $product->id) }}" class="btn-action btn-sm btn-edit" style="display: inline-block; padding: 6px 12px; font-size: 13px; text-decoration: none; border-radius: 6px; background: #eef2f6; color: #333;"><i class="fas fa-edit"></i> Edit</a>
                                             <form action="{{ route('admin.products.delete', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');" style="margin: 0; display: inline;">
                                                 @csrf
@@ -119,13 +125,7 @@
         </div>
     </div>
 
-    <!-- Zoom Lightbox Modal -->
-    <div id="zoomModal" class="zoom-modal">
-        <span class="zoom-close" onclick="closeZoomModal()">&times;</span>
-        <div style="max-width: 90%; max-height: 90%; display: flex; align-items: center; justify-content: center; position: relative;">
-            <img class="zoom-content" id="zoomImg" alt="Product Image Zoomed">
-        </div>
-    </div>
+
 @endsection
 
 @section('scripts')
@@ -150,59 +150,7 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        .product-img-container:hover .zoom-overlay {
-            opacity: 1 !important;
-        }
-        .product-img-container:hover .product-img-th {
-            transform: scale(1.1);
-        }
-        .zoom-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.25s ease-out;
-        }
-        .zoom-modal.active {
-            display: flex !important;
-            opacity: 1;
-        }
-        .zoom-close {
-            position: absolute;
-            top: 20px;
-            right: 35px;
-            color: #fff;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            user-select: none;
-        }
-        .zoom-close:hover {
-            color: #cbd5e1 !important;
-        }
-        .zoom-content {
-            margin: auto;
-            display: block;
-            max-width: 100%;
-            max-height: 90vh;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            object-fit: contain;
-            animation-name: zoomIn;
-            animation-duration: 0.25s;
-        }
-        @keyframes zoomIn {
-            from {transform: scale(0.9); opacity: 0;}
-            to {transform: scale(1); opacity: 1;}
-        }
+
     </style>
     <script>
         $(document).ready(function() {
@@ -296,47 +244,159 @@
                 // Submit natively
                 this.submit();
             });
-        });
 
-        function openZoomModal(imgSrc) {
-            const modal = document.getElementById('zoomModal');
-            const modalImg = document.getElementById('zoomImg');
-            if (modal && modalImg) {
-                modalImg.src = imgSrc;
-                modal.style.display = 'flex';
-                setTimeout(() => {
-                    modal.classList.add('active');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeZoomModal() {
-            const modal = document.getElementById('zoomModal');
-            if (modal) {
-                modal.classList.remove('active');
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 250);
-                document.body.style.overflow = '';
-            }
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeZoomModal();
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('zoomModal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal || e.target.classList.contains('zoom-close')) {
-                        closeZoomModal();
+            // Toggle product specifications detail row
+            $(document).on('click', '.toggle-details', function(e) {
+                e.preventDefault();
+                const btn = $(this);
+                const productId = btn.data('id');
+                const name = btn.data('name');
+                const specs = btn.data('specs');
+                const row = btn.closest('tr');
+                
+                let detailsRow = $('#details-row-' + productId);
+                
+                if (detailsRow.length) {
+                    detailsRow.find('.details-content-wrapper').slideUp(200, function() {
+                        detailsRow.remove();
+                    });
+                    btn.html('<i class="fas fa-chevron-down"></i> Details');
+                    btn.removeClass('active');
+                } else {
+                    let specHtml = '';
+                    if (specs && specs.trim()) {
+                        let lines = specs.split('\n');
+                        specHtml = '<ul style="margin: 0; padding-left: 20px; list-style-type: disc; display: flex; flex-direction: column; gap: 6px;">';
+                        lines.forEach(function(line) {
+                            if (line.trim()) {
+                                specHtml += '<li style="color: #475569; font-size: 13.5px; font-weight: 500; line-height: 1.5;">' + escapeHtml(line) + '</li>';
+                            }
+                        });
+                        specHtml += '</ul>';
+                    } else {
+                        specHtml = '<span style="color: #94a3b8; font-style: italic; font-size: 13px;">No specifications listed for this product.</span>';
                     }
+
+                    const newRowHtml = `
+                        <tr id="details-row-${productId}" class="product-details-row" style="background: #f8fafc; border-bottom: 1px solid #eef2f6;">
+                            <td colspan="8" style="padding: 0;">
+                                <div class="details-content-wrapper" style="display: none; padding: 20px 25px;">
+                                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); border-left: 4px solid var(--royal);">
+                                        <h4 style="margin: 0 0 12px 0; color: var(--dark); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-list-alt" style="color: var(--royal);"></i> Specifications for ${escapeHtml(name)}
+                                        </h4>
+                                        ${specHtml}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    row.after(newRowHtml);
+                    $('#details-row-' + productId).find('.details-content-wrapper').slideDown(250);
+                    btn.html('<i class="fas fa-chevron-up"></i> Close');
+                    btn.addClass('active');
+                }
+            });
+
+            function escapeHtml(string) {
+                return String(string).replace(/[&<>"']/g, function (s) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;'
+                    }[s];
                 });
             }
+
+            // Close all open detail rows when the table redraws (pagination, sort, search)
+            $('.datatable').on('draw.dt', function() {
+                $('.product-details-row').remove();
+                $('.toggle-details').html('<i class="fas fa-chevron-down"></i> Details').removeClass('active');
+            });
+
+            // Export filtered table data to Excel
+            $(document).on('click', '#export-excel-btn', function(e) {
+                e.preventDefault();
+                
+                let table = $('.datatable').DataTable();
+                let rowsData = table.rows({ search: 'applied' }).nodes().toArray();
+                
+                if (rowsData.length === 0) {
+                    alert('No products available to export.');
+                    return;
+                }
+                
+                let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+                '<head>' +
+                    '<meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">' +
+                    '<style>' +
+                        'table { border-collapse: collapse; }' +
+                        'th { background-color: #217346; color: white; font-weight: bold; border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-family: sans-serif; }' +
+                        'td { border: 1px solid #cbd5e1; padding: 10px; vertical-align: middle; font-family: sans-serif; font-size: 13px; }' +
+                    '</style>' +
+                '</head>' +
+                '<body>' +
+                    '<table>' +
+                        '<thead>' +
+                            '<tr>' +
+                                '<th>Product Name</th>' +
+                                '<th style="width: 100px; text-align: center;">Image Preview</th>' +
+                                '<th>Image URL</th>' +
+                                '<th>Category / Badge</th>' +
+                                '<th>Price (TZS)</th>' +
+                                '<th>Stock Status</th>' +
+                                '<th>Sort Order</th>' +
+                                '<th style="width: 250px;">Specifications</th>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody>';
+
+                rowsData.forEach(function(row) {
+                    let $row = $(row);
+                    
+                    let productName = $row.find('td:nth-child(3)').text().trim();
+                    let imgUrl = $row.find('td:nth-child(2) img').attr('src') || '';
+                    let category = $row.find('td:nth-child(4)').text().trim();
+                    let priceText = $row.find('td:nth-child(5)').text().trim();
+                    let cleanPrice = priceText.replace(/[^0-9]/g, '');
+                    let stockStatus = $row.find('td:nth-child(6)').text().trim();
+                    let sortOrder = $row.find('td:nth-child(7)').text().trim();
+                    let specs = $row.find('.toggle-details').attr('data-specs') || '';
+                    
+                    // Clean and format specifications to display nicely inside the excel cell
+                    let formattedSpecs = specs ? escapeHtml(specs).replace(/\n/g, '<br>') : 'None';
+
+                    html += '<tr>' +
+                        '<td>' + escapeHtml(productName) + '</td>' +
+                        '<td style="width: 80px; height: 60px; text-align: center; vertical-align: middle;">' +
+                            (imgUrl ? '<img src="' + imgUrl + '" width="60" height="45" style="display: block; margin: auto;" />' : 'No Image') +
+                        '</td>' +
+                        '<td>' + escapeHtml(imgUrl) + '</td>' +
+                        '<td>' + escapeHtml(category) + '</td>' +
+                        '<td style="mso-number-format:\\#\\,\\#\\#0;">' + cleanPrice + '</td>' +
+                        '<td>' + escapeHtml(stockStatus) + '</td>' +
+                        '<td>' + escapeHtml(sortOrder) + '</td>' +
+                        '<td>' + formattedSpecs + '</td>' +
+                    '</tr>';
+                });
+
+                html += '</tbody>' +
+                    '</table>' +
+                '</body>' +
+                '</html>';
+
+                let blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+                let link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'products_sales_upload_' + new Date().toISOString().split('T')[0] + '.xls';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
         });
+
+
     </script>
 @endsection
