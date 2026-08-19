@@ -32,9 +32,28 @@ body {
     background: var(--royal);
     color: white;
     text-align: center;
-    padding: 10px;
-    font-size: 14px;
+    padding: 8px 10px;
+    font-size: 13px;
     font-weight: 500;
+    width: 100%;
+}
+
+.top-bar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.top-bar-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
 }
 
 .top-bar-link {
@@ -47,7 +66,29 @@ body {
 }
 
 @media (max-width: 768px) {
+    .top-bar {
+        padding: 8px 10px;
+    }
+    
+    .top-bar-container {
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+    }
+
+    .top-bar-item {
+        text-align: center;
+        justify-content: center;
+        white-space: normal;
+        width: 100%;
+        line-height: 1.4;
+    }
+
     .top-bar-separator {
+        display: none !important;
+    }
+
+    .hide-on-mobile {
         display: none !important;
     }
 }
