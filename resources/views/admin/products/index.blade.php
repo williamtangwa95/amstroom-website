@@ -342,7 +342,6 @@
                         '<thead>' +
                             '<tr>' +
                                 '<th>Product Name</th>' +
-                                '<th style="width: 100px; text-align: center;">Image Preview</th>' +
                                 '<th>Image URL</th>' +
                                 '<th>Category / Badge</th>' +
                                 '<th>Price (TZS)</th>' +
@@ -365,14 +364,11 @@
                     let sortOrder = $row.find('td:nth-child(7)').text().trim();
                     let specs = $row.find('.toggle-details').attr('data-specs') || '';
                     
-                    // Clean and format specifications to display nicely inside the excel cell
-                    let formattedSpecs = specs ? escapeHtml(specs).replace(/\n/g, '<br>') : 'None';
+                    // Clean and format specifications to display on a single line
+                    let formattedSpecs = specs ? escapeHtml(specs.trim()).replace(/[\r\n]+/g, '; ') : 'None';
 
                     html += '<tr>' +
                         '<td>' + escapeHtml(productName) + '</td>' +
-                        '<td style="width: 80px; height: 60px; text-align: center; vertical-align: middle;">' +
-                            (imgUrl ? '<img src="' + imgUrl + '" width="60" height="45" style="display: block; margin: auto;" />' : 'No Image') +
-                        '</td>' +
                         '<td>' + escapeHtml(imgUrl) + '</td>' +
                         '<td>' + escapeHtml(category) + '</td>' +
                         '<td style="mso-number-format:\\#\\,\\#\\#0;">' + cleanPrice + '</td>' +
