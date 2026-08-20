@@ -321,8 +321,9 @@
 
             // Click delegator for all zoomable images
             $(document).on('click', '.zoomable-image-container', function(e) {
-                if ($(e.target).closest('a, button, form, input').length) {
-                    return; // Don't trigger zoom if clicking interactive elements inside
+                const interactive = $(e.target).closest('a, button, form, input');
+                if (interactive.length && (this === interactive[0] || $.contains(this, interactive[0]))) {
+                    return; // Don't trigger zoom if clicking interactive elements inside the container
                 }
                 e.preventDefault();
                 

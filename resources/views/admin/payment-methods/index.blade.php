@@ -36,7 +36,12 @@
                             <tr style="border-bottom: 1px solid #eef2f6;">
                                 <td>
                                     @if($method->logo_path)
-                                        <img src="{{ asset($method->logo_path) }}" alt="{{ $method->name }}" style="width: 48px; height: 48px; object-fit: contain; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 4px;">
+                                        <div class="zoomable-image-container" style="width: 48px; height: 48px; background: #f8fafc; padding: 4px;" data-zoom-caption="{{ $method->name }}">
+                                            <img src="{{ asset($method->logo_path) }}" alt="{{ $method->name }}" style="object-fit: contain;">
+                                            <div class="zoom-overlay">
+                                                <i class="fas fa-search-plus"></i>
+                                            </div>
+                                        </div>
                                     @else
                                         <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: #e2e8f0; border-radius: 8px; color: #64748b; font-size: 18px;">
                                             <i class="fas fa-wallet"></i>
